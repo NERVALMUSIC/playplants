@@ -16,8 +16,6 @@ const uint64_t pipes[5] = { 0xF0F0F0F0D2LL, 0xF0F0F0F0C3LL, 0xF0F0F0F0B4LL, 0xF0
 const uint8_t bufferSize = 6;
 uint8_t data[bufferSize];
 
-const uint8_t notes[12] = {59, 58, 57, 56, 55, 54, 53, 52, 51, 50, 49, 48};
-
 void setup(void) {
    radio.begin();
    MIDI.begin();

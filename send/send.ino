@@ -67,7 +67,7 @@ void loop(void)
 }
 
 void show(uint8_t data[]){
-      Serial.print("header: ");
+      Serial.print("header1: ");
       Serial.print(data[0]);
       Serial.print("  note: ");
       Serial.print(data[1]);

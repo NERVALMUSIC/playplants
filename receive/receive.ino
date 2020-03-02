@@ -3,7 +3,7 @@
 #include <RF24_config.h>
 #include <SPI.h>
 #include <MIDI.h>
-
+//recieve de DAVID
 MIDI_CREATE_DEFAULT_INSTANCE();
 
 const int pinCE = 9;

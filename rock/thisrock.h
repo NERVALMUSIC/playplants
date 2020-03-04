@@ -11,7 +11,7 @@
 //Do NOT touch this
 //
 //Sensor stuf
-#define I2CADDR 0x05
+#define I2CADDR 0x5A
 #ifndef _BV
 #define _BV(bit) (1 << (bit)) 
 #endif

@@ -10,6 +10,7 @@
 //Radio instance and variables
 RF24 radio(PINCE, PINCS);
 uint8_t data[BUFF];
+const uint64_t pipes[5] = {0xF0F0F0F0D2LL, 0xF0F0F0F0C3LL, 0xF0F0F0F0B4LL, 0xF0F0F0F0A5LL, 0xF0F0F0F096LL };
 
 //Sensor instance and variables
 MPR121 cap = MPR121();
@@ -36,7 +37,7 @@ void MPRconfig(){
 }
 
 void NRFconfig(void){
-  const uint64_t pipes[]=PIPES;
+  //const uint64_t pipes[]=PIPES;
   if(ROLE == 0){
     for(int i = 0; i < 5; i += 1){
       radio.openReadingPipe(i+1,pipes[i]);
@@ -62,7 +63,10 @@ void play() {
     radio.write(data, sizeof data);
   }
 }
+
+
 void self_check(int n) {
+  data[0] = HEAD;
   if ((currtouched & _BV(n)) && !(lasttouched & _BV(n)) ) {
       data[1] = BASENOTE+n;
       data[2] = 1;
@@ -78,7 +82,7 @@ void self_check(int n) {
 }
 
 void receive() {
-  for(int n; n<5; n++){
+  for(int n=0; n<5; n+=1){
     if (radio.available()) {
       radio.read(data, sizeof data);
       play();

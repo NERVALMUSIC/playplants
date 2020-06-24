@@ -1,8 +1,8 @@
 //Touch this
 //
 //Communications
-#define ROLE 0			//<-- 0 for receiver, 1 for transmitter
-#define HEAD 5			//<-- 5 for receiver, 0 to 4 for transmitter
+#define ROLE 1			//<-- 0 for receiver, 1 for transmitter
+#define HEAD 0			//<-- 5 for receiver, 0 to 4 for transmitter
 //Thresholds
 #define TOUCH 7		//<-- optimize for plant
 #define RELEASE 5		//<-- optimize for plant
@@ -22,3 +22,5 @@
 #define BUFF 5
 //Midi stuff
 #define BASENOTE 48
+#define INSTRUMENT 0//<-- 0 for piano, 1 always on
+#define SUSTAIN 127 //<-- 0 Off, 127 On

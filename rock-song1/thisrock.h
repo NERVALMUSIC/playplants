@@ -1,10 +1,10 @@
-//Touch this
+  //Touch this
 //
 //Communications
 #define ROLE 0			//<-- 0 for receiver, 1 for transmitter
 #define HEAD 5			//<-- 5 for receiver, 0 to 4 for transmitter
 //Thresholds
-#define TOUCH 7		//<-- optimize for plant
+#define TOUCH 10		//<-- optimize for plant
 #define RELEASE 5		//<-- optimize for plant
 
 

@@ -18,6 +18,7 @@ uint16_t lasttouched = 0;
 uint16_t currtouched = 0;
 
 //Midi instance
+const int myNotes[] = {NOTE1, NOTE2, NOTE3, NOTE4, NOTE5, NOTE6, NOTE7, NOTE8, NOTE9, NOTE10, NOTE11, NOTE12 };
 MIDI_CREATE_DEFAULT_INSTANCE();
 
 void setup(void){
@@ -71,14 +72,16 @@ void self_check(int n) {
   data[0] = HEAD;
   data[4] = SUSTAIN;
   if ((currtouched & _BV(n)) && !(lasttouched & _BV(n)) ) {
-      data[1] = BASENOTE+n;
+      data[1] = myNotes[n];
       data[2] = 1;
+      //data[3] = 127;
       data[3] = cap.filteredData(n)-cap.baselineData(n);
       play();
   }
   if (!(currtouched & _BV(n)) && (lasttouched & _BV(n)) ) {
-      data[1] = BASENOTE+n;
+      data[1] = myNotes[n];
       data[2] = 0;
+      //data[3] = 0;
       data[3] = cap.filteredData(n)-cap.baselineData(n);
       play();
   }

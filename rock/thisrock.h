@@ -36,5 +36,4 @@ enum {
   NOTE12 = 50,
 };
 
-#define INSTRUMENT 0//<-- 0 for piano, 1 always on
 #define SUSTAIN 127 //<-- 0 Off, 127 On

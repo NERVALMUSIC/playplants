@@ -78,7 +78,7 @@ void self_check(int n) {
       data[3] = cap.filteredData(n)-cap.baselineData(n);
       play();
   }
-  if (!(currtouched & _BV(n)) && (lasttouched & _BV(n)) ) {
+  if (!(currtouched & _BV(n)) && (lasttouched & _BV(n))) {
       data[1] = myNotes[n];
       data[2] = 0;
       //data[3] = 0;

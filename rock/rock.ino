@@ -28,6 +28,8 @@ void setup(void){
   MPRconfig();
   Serial.begin(115200);
   data[0] = HEAD;
+  MIDI.sendControlChange(64,SUSTAIN,data[0]+1);
+  
 }
 
 void MPRconfig(){
@@ -67,6 +69,7 @@ void play() {
 
 void self_check(int n) {
   data[0] = HEAD;
+  data[4] = SUSTAIN;
   if ((currtouched & _BV(n)) && !(lasttouched & _BV(n)) ) {
       data[1] = BASENOTE+n;
       data[2] = 1;
@@ -85,6 +88,7 @@ void receive() {
   for(int n=0; n<5; n+=1){
     if (radio.available()) {
       radio.read(data, sizeof data);
+      MIDI.sendControlChange(64,data[4],data[0]+1);
       play();
     }
   }

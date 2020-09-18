@@ -2,7 +2,6 @@
 #include "src/RF24/nRF24L01.h"
 #include "src/RF24/RF24_config.h"
 #include "src/MPR121/MPR121.h"
-#include "src/MIDIUSB/MIDIUSB.h"
 #include "thisrock.h"
 #include <SPI.h>
 
@@ -17,7 +16,6 @@ uint16_t currtouched = 0;
 
 //Midi instance
 #ifdef CONTROL
-  MIDI_CREATE_DEFAULT_INSTANCE();
   uint8_t control = 0;
 #endif
 
@@ -28,7 +26,6 @@ void setup(void){
   NRFconfig();
   #ifdef CONTROL
     Serial.begin(115200);
-    MIDI.begin();
   #endif  
 }
 
@@ -49,15 +46,22 @@ void NRFconfig(void){
   #endif
 }
 
-void play(uint8_t note, uint8_t velocity, uint8_t channel, bool pressed) {
-  #ifdef CONTROL
-    if (pressed) {
-      MIDI.sendNoteOn(note, velocity, channel);
-    } 
-    else {
-      MIDI.sendNoteOff(note, velocity, channel);
-    }
-  #endif
+void sendMIDI(uint8_t messageType, uint8_t channel, uint8_t data1, uint8_t data2) {
+                                               // corresponds to binary channel 0
+  messageType &= 0b11110000;                   // Make sure that only the high nibble 
+                                               // of the message type is set
+  channel     &= 0b00001111;                   // Make sure that only the low nibble
+                                               // of the channel is set
+  uint8_t statusByte = messageType | channel;  // Combine the messageType (high nibble) 
+                                               // with the channel (low nibble)
+                                               // Both the message type and the channel
+                                               // should be 4 bits wide
+  statusByte  |= 0b10000000;                   // Set the most significant bit of the status byte
+  data1       &= 0b01111111;                   // Clear the most significant bit of the data bytes
+  data2       &= 0b01111111;
+  Serial.write(statusByte);                    // Send over Serial
+  Serial.write(data1);
+  Serial.write(data2);
 }
 
 
@@ -66,35 +70,29 @@ void self_check(int n) {
     data[0] = HEAD;
     data[1] = NOTES[n];
     if ((currtouched & _BV(n)) && !(lasttouched & _BV(n)) ) {
-      data[2] = 1;
+      data[2] = NOTE_ON;
       data[3] = constrain(cap.filteredData(n)-cap.baselineData(n),0,127);
       radio.write(data, sizeof data);
     }
     if (!(currtouched & _BV(n)) && (lasttouched & _BV(n))) {
-      data[2] = 0;
+      data[2] = NOTE_OFF;
       data[3] = cap.filteredData(n)-cap.baselineData(n);
       radio.write(data, sizeof data);
     }
   #else
       if ((currtouched & _BV(n)) && !(lasttouched & _BV(n)) ) {
         control = NOTES[n];
-        //Serial.println(control);
       }  
     switch (control) {
       case 0:  
         for(int n=0; n<5; n+=1){
           if (radio.available()) {
             radio.read(data, sizeof data);
-            //Serial.print(data[0]); Serial.print("\t");
-            //Serial.print(data[1]); Serial.print("\t");
-            //Serial.print(data[2]); Serial.print("\t");
-            //Serial.println(data[3]);
-            play(data[1],data[3],data[0]+1,data[2]);
+            sendMIDI(data[2], data[0], data[1], data[3]);
           }
         }
         break;
       case 1:
-        play(10,127,6,1);
         break;
       default:
       //nothing

@@ -5,7 +5,7 @@
 #define CONTROL true	//<-- Comment this line for transmitter
 
 #ifndef CONTROL
-  #define HEAD 4			  //<-- Hardcode value between 0 and 4
+  #define HEAD 4			  //<-- Hardcode value between 1 and 5
 #endif
 
 //Thresholds
@@ -16,8 +16,15 @@
 #ifndef CONTROL
   const uint8_t NOTES[12]{41,53,45,57,44,56,65,77,69,81,38,50};
 #else
-  const uint8_t NOTES[12]{0,1};
+  const uint8_t NOTES[2]{0,1};
 #endif
+const uint8_t NOTE_OFF = 0x80;
+const uint8_t NOTE_ON = 0x90;
+const uint8_t KEY_PRESSURE = 0xA0;
+const uint8_t CC = 0xB0;
+const uint8_t PROGRAM_CHANGE = 0xC0;
+const uint8_t CHANNEL_PRESSURE = 0xD0;
+const uint8_t PITCH_BEND = 0xE0;
 
 //Do NOT touch this
 //

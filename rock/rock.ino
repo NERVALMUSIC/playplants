@@ -1,4 +1,3 @@
-//#include "src/plant/plant.h"
 #include "src/RF24/RF24.h"
 #include "src/RF24/nRF24L01.h"
 #include "src/RF24/RF24_config.h"
@@ -50,11 +49,7 @@ void NRFconfig(void){
   #endif
 }
 
-void play() {
-  const uint8_t channel = data[0] + 1;
-  const uint8_t note = data[1];
-  bool pressed = data[2];
-  const uint8_t velocity = data[3];
+void play(uint8_t note, uint8_t velocity, uint8_t channel, bool pressed) {
   #ifdef CONTROL
     if (pressed) {
       MIDI.sendNoteOn(note, velocity, channel);
@@ -67,14 +62,12 @@ void play() {
 
 
 void self_check(int n) {
-  
   #ifndef CONTROL
     data[0] = HEAD;
     data[1] = NOTES[n];
-    data[4] = SUSTAIN;
     if ((currtouched & _BV(n)) && !(lasttouched & _BV(n)) ) {
       data[2] = 1;
-      data[3] = cap.filteredData(n)-cap.baselineData(n);
+      data[3] = constrain(cap.filteredData(n)-cap.baselineData(n),0,127);
       radio.write(data, sizeof data);
     }
     if (!(currtouched & _BV(n)) && (lasttouched & _BV(n))) {
@@ -85,43 +78,26 @@ void self_check(int n) {
   #else
       if ((currtouched & _BV(n)) && !(lasttouched & _BV(n)) ) {
         control = NOTES[n];
+        //Serial.println(control);
       }  
     switch (control) {
       case 0:  
         for(int n=0; n<5; n+=1){
           if (radio.available()) {
             radio.read(data, sizeof data);
-            MIDI.sendControlChange(64,data[4],data[0]+1);
-            play();
+            //Serial.print(data[0]); Serial.print("\t");
+            //Serial.print(data[1]); Serial.print("\t");
+            //Serial.print(data[2]); Serial.print("\t");
+            //Serial.println(data[3]);
+            play(data[1],data[3],data[0]+1,data[2]);
           }
         }
         break;
       case 1:
-        MIDI.sendNoteOn(1, 0, 1);
-        break;
-      case 2:
-        MIDI.sendNoteOn(2, 0, 1);
-        break;      
-      case 3:
-        MIDI.sendNoteOn(3, 0, 1);
-        break;
-      case 4:
-        MIDI.sendNoteOn(4, 0, 1);
-        break;
-      case 5:
-        MIDI.sendNoteOn(5, 0, 1);
-        break;
-      case 6:
-        MIDI.sendNoteOn(6, 0, 1);
-        break;
-      case 7:
-        MIDI.sendNoteOn(7, 0, 1);
-        break;
-      case 8:
-        MIDI.sendNoteOn(8, 0, 1);
+        play(10,127,6,1);
         break;
       default:
-        MIDI.sendNoteOn(9, 0, 1);
+      //nothing
         break;
     }
   #endif
@@ -129,7 +105,7 @@ void self_check(int n) {
 
 void loop(void){
   currtouched = cap.touched();
-   for (int i = 0; i < 12; i += 1){
+   for (int i = 0; i < sizeof(NOTES); i += 1){
     self_check(i);
    }
    lasttouched = currtouched;

@@ -2,10 +2,10 @@
 //
 
 //Communications
-//#define CONTROL true	//<-- Comment this line for transmitter
+#define CONTROL true	//<-- Comment this line for transmitter
 
 #ifndef CONTROL
-  #define HEAD 0			  //<-- Hardcode value between 0 and 4
+  #define HEAD 4			  //<-- Hardcode value between 0 and 4
 #endif
 
 //Thresholds
@@ -14,10 +14,9 @@
 
 //Midi stuff
 #ifndef CONTROL
-  const int NOTES[12]{41,53,45,57,44,56,65,77,69,81,38,50};
-  #define SUSTAIN 127 //<-- 0 Off, 127 On
+  const uint8_t NOTES[12]{41,53,45,57,44,56,65,77,69,81,38,50};
 #else
-  const int NOTES[12]{0,1,2,3,4,5,6,7,8,9,10,11};
+  const uint8_t NOTES[12]{0,1};
 #endif
 
 //Do NOT touch this
@@ -30,7 +29,7 @@
 #endif
 
 //Radio stuff
-const int PIPES[5] {0xF0F0F0F0D2LL,  0xF0F0F0F0C3LL, 0xF0F0F0F0B4LL, 0xF0F0F0F0A5LL, 0xF0F0F0F096LL};
+const uint64_t PIPES[5] {0xF0F0F0F0D2LL,  0xF0F0F0F0C3LL, 0xF0F0F0F0B4LL, 0xF0F0F0F0A5LL, 0xF0F0F0F096LL};
 #define PINCE 9
 #define PINCS 10
-#define BUFF 5
+#define BUFF 4

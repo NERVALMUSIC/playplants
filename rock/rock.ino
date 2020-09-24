@@ -1,4 +1,4 @@
-#include "src/RF24/RF24.h"
+    #include "src/RF24/RF24.h"
 #include "src/RF24/nRF24L01.h"
 #include "src/RF24/RF24_config.h"
 #include "src/MPR121/MPR121.h"
@@ -30,8 +30,8 @@ void setup(void){
 }
 
 void MPRconfig(){
-  cap.writeRegister(MPR121_NHDF, 0x01); //noise half delta (falling)
-  cap.writeRegister(MPR121_FDLF, 0x3F); //filter delay limit (falling)
+  cap.writeRegister(MPR121_NHDF, 0x1); //noise half delta (falling)
+  cap.writeRegister(MPR121_FDLF, 0x10); //filter delay limit (falling)
   cap.setThresholds(TOUCH, RELEASE);
 }
 
@@ -71,12 +71,13 @@ void self_check(int n) {
     data[1] = NOTES[n];
     if ((currtouched & _BV(n)) && !(lasttouched & _BV(n)) ) {
       data[2] = NOTE_ON;
-      data[3] = constrain(cap.filteredData(n)-cap.baselineData(n),0,127);
+      data[3] = map(cap.filteredData(n)-cap.baselineData(n),0,1024,0,127);
+      Serial.println(data[3]);
       radio.write(data, sizeof data);
     }
     if (!(currtouched & _BV(n)) && (lasttouched & _BV(n))) {
       data[2] = NOTE_OFF;
-      data[3] = cap.filteredData(n)-cap.baselineData(n);
+      data[3] = map(cap.filteredData(n)-cap.baselineData(n),0,1024,0,127);
       radio.write(data, sizeof data);
     }
   #else
@@ -84,8 +85,8 @@ void self_check(int n) {
         control = NOTES[n];
       }  
     switch (control) {
-      case 0:  
-        for(int n=0; n<5; n+=1){
+      case 0:
+       for(int n=0; n<5; n+=1){
           if (radio.available()) {
             radio.read(data, sizeof data);
             sendMIDI(data[2], data[0], data[1], data[3]);
@@ -93,9 +94,15 @@ void self_check(int n) {
         }
         break;
       case 1:
+      control=0;
         break;
       default:
-      //nothing
+      for(int n=0; n<5; n+=1){
+          if (radio.available()) {
+            radio.read(data, sizeof data);
+            sendMIDI(data[2], data[0], data[1], data[3]);
+          }
+        }
         break;
     }
   #endif

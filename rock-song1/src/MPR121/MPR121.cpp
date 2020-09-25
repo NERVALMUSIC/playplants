@@ -29,7 +29,7 @@
 #include "MPR121.h"
 
 // uncomment to use autoconfig !
-//#define AUTOCONFIG // use autoconfig (Yes it works pretty well!)
+#define AUTOCONFIG // use autoconfig (Yes it works pretty well!)
 
 /*!
  *  @brief      Default constructor
@@ -93,7 +93,7 @@ boolean MPR121::begin(uint8_t i2caddr, TwoWire *theWire,
   writeRegister(MPR121_CONFIG2, 0x20); // 0.5uS encoding, 1ms period
 
 #ifdef AUTOCONFIG
-  writeRegister(MPR121_AUTOCONFIG0, 0x0B);
+  writeRegister(MPR121_AUTOCONFIG0, 0x09);
 
   // correct values for Vdd = 3.3V
   writeRegister(MPR121_UPLIMIT, 200);     // ((Vdd - 0.7)/Vdd) * 256

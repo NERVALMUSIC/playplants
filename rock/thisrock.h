@@ -5,11 +5,11 @@
 //  #define CONTROL true	//<-- Comment this line for transmitter
 
 #ifndef CONTROL
-  #define HEAD 1			  //<-- Hardcode value between 1 and 5
+  #define HEAD 3			  //<-- Hardcode value between 1 and 5
 #endif
 
 //Thresholds
-#define TOUCH 1		//<-- optimize for plant   //36 con tierra
+#define TOUCH 20		//<-- optimize for plant   //36 con tierra
 #define RELEASE 0		//<-- optimize for plant
 
 //Midi stuff

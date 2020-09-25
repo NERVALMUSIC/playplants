@@ -18,20 +18,19 @@ uint16_t currtouched = 0;
 #ifdef CONTROL
   uint8_t control = 0;
 #endif
-
 void setup(void){
   cap.begin(I2CADDR);
   MPRconfig();
   radio.begin();
   NRFconfig();
+      Serial.begin(115200);
   #ifdef CONTROL
-    Serial.begin(115200);
   #endif  
 }
 
 void MPRconfig(){
   cap.writeRegister(MPR121_NHDF, 0x1); //noise half delta (falling)
-  cap.writeRegister(MPR121_FDLF, 0x10); //filter delay limit (falling)
+  cap.writeRegister(MPR121_FDLF, 0x3f); //filter delay limit (falling)
   cap.setThresholds(TOUCH, RELEASE);
 }
 
@@ -69,15 +68,17 @@ void self_check(int n) {
   #ifndef CONTROL
     data[0] = HEAD;
     data[1] = NOTES[n];
+          Serial.println(data[3] );
+
+             data[3] = constrain(map(cap.filteredData(n),720,400,0,127),0,127);                
     if ((currtouched & _BV(n)) && !(lasttouched & _BV(n)) ) {
       data[2] = NOTE_ON;
-      data[3] = map(cap.filteredData(n)-cap.baselineData(n),0,1024,0,127);
-      Serial.println(data[3]);
       radio.write(data, sizeof data);
     }
     if (!(currtouched & _BV(n)) && (lasttouched & _BV(n))) {
       data[2] = NOTE_OFF;
-      data[3] = map(cap.filteredData(n)-cap.baselineData(n),0,1024,0,127);
+      //  Serial.println(data[3] );
+        
       radio.write(data, sizeof data);
     }
   #else
@@ -111,7 +112,9 @@ void self_check(int n) {
 void loop(void){
   currtouched = cap.touched();
    for (int i = 0; i < sizeof(NOTES); i += 1){
-    self_check(i);
+    self_check(1);
+     //  Serial.println(cap.filteredData(1));
+
    }
    lasttouched = currtouched;
 }

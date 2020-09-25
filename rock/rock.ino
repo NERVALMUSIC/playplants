@@ -23,9 +23,7 @@ void setup(void){
   MPRconfig();
   radio.begin();
   NRFconfig();
-      Serial.begin(115200);
-  #ifdef CONTROL
-  #endif  
+  Serial.begin(115200);
 }
 
 void MPRconfig(){
@@ -68,17 +66,15 @@ void self_check(int n) {
   #ifndef CONTROL
     data[0] = HEAD;
     data[1] = NOTES[n];
-          Serial.println(data[3] );
-
-             data[3] = constrain(map(cap.filteredData(n),720,400,0,127),0,127);                
+    data[2] = NOTE_ON;
+    //Serial.println(data[3] );
+    data[3] = constrain(map(cap.filteredData(n),720,400,0,127),0,127);                
     if ((currtouched & _BV(n)) && !(lasttouched & _BV(n)) ) {
       data[2] = NOTE_ON;
       radio.write(data, sizeof data);
     }
     if (!(currtouched & _BV(n)) && (lasttouched & _BV(n))) {
       data[2] = NOTE_OFF;
-      //  Serial.println(data[3] );
-        
       radio.write(data, sizeof data);
     }
   #else

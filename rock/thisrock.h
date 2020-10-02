@@ -2,21 +2,22 @@
 //
 
 //Communications
-//  #define CONTROL true	//<-- Comment this line for transmitter
+  #define CONTROL true	// <-- Comentar para emisor
 
 #ifndef CONTROL
-  #define HEAD 3			  //<-- Hardcode value between 1 and 5
+  #define HEAD 3			  // <-- Hardcode value between 1 and 5
 #endif
 
 //Thresholds
-#define TOUCH 20		//<-- optimize for plant   //36 con tierra
-#define RELEASE 0		//<-- optimize for plant
+#define TOUCH 15		//<-- optimize for plant   //36 con tierra
+#define RELEASE 1		//<-- optimize for plant
 
 //Midi stuff
 #ifndef CONTROL
   const uint8_t NOTES[12]{41,53,45,57,44,56,65,77,69,81,38,50};
 #else
-  const uint8_t NOTES[2]{0,1};
+  const uint8_t MODES[3]{2,4,6};
+  const uint8_t ROCKS[5]{7,8,9,10,11};
 #endif
 const uint8_t NOTE_OFF = 0x80;
 const uint8_t NOTE_ON = 0x90;

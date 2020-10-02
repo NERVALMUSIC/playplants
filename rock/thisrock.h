@@ -2,30 +2,29 @@
 //
 
 //Communications
-  #define CONTROL true	// <-- Comentar para emisor
+//  #define CONTROL true	// <-- Comentar para emisor
 
 #ifndef CONTROL
   #define HEAD 3			  // <-- Hardcode value between 1 and 5
 #endif
 
 //Thresholds
-#define TOUCH 15		//<-- optimize for plant   //36 con tierra
+#define TOUCH 15		//<-- optimize for plant
 #define RELEASE 1		//<-- optimize for plant
 
 //Midi stuff
-#ifndef CONTROL
-  const uint8_t NOTES[12]{41,53,45,57,44,56,65,77,69,81,38,50};
-#else
-  const uint8_t MODES[3]{2,4,6};
-  const uint8_t ROCKS[5]{7,8,9,10,11};
+const uint8_t NOTES[12]{41,53,45,57,44,56,65,77,69,81,38,50};   //<-- notes to play for this rock (set also for receiver in case it needs to be used)
+#ifdef CONTROL
+  const uint8_t MODES[3]{1,3,5};        //<-- Electrodes used for mode control (3 needed) up to 6 can be used
+  const uint8_t ROCKS[5]{7,8,9,10,11};  //<-- Electrodes used for rock selection (5 maximum rocks)
 #endif
-const uint8_t NOTE_OFF = 0x80;
-const uint8_t NOTE_ON = 0x90;
-const uint8_t KEY_PRESSURE = 0xA0;
-const uint8_t CC = 0xB0;
-const uint8_t PROGRAM_CHANGE = 0xC0;
-const uint8_t CHANNEL_PRESSURE = 0xD0;
-const uint8_t PITCH_BEND = 0xE0;
+const uint8_t NOTE_OFF = 0x80;          //<-- Used Midi message types
+const uint8_t NOTE_ON = 0x90;           //<-- Used Midi message types
+const uint8_t KEY_PRESSURE = 0xA0;      //<-- Used Midi message types
+const uint8_t CC = 0xB0;                //<-- Used Midi message types
+const uint8_t PROGRAM_CHANGE = 0xC0;    //<-- Used Midi message types
+const uint8_t CHANNEL_PRESSURE = 0xD0;  //<-- Used Midi message types
+const uint8_t PITCH_BEND = 0xE0;        //<-- Used Midi message types
 
 //Do NOT touch this
 //

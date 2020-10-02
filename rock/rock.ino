@@ -94,15 +94,15 @@ void sendMIDI(uint8_t messageType, uint8_t channel, uint8_t data1, uint8_t data2
       {
         if (currtouched & _BV(MODES[n]))    //only check if the electrode is currently being touched, not if it is a new touch
         {
-          bitWrite(b, n, 1);  //Set bit for each electorde that has a new touch, the table is as follows right now more modes can be added:
+          bitWrite(b, n, 1);  //Set bit for each electorde that has a new touch, the table is as follows right now, more modes can be added:
           /*                  mode 2  | mode 1  | mode 0  | Value
            *                 ---------|---------|---------|--------
            *                     0    |    0    |    0    |    0
            *                     0    |    0    |    1    |    1
            *                     0    |    1    |    0    |    2
-           *                     0    |    1    |    1    |    3
-           *                     1    |    0    |    0    |    4
-           *                     1    |    0    |    1    |    5
+           *                     1    |    0    |    0    |    3
+           *                     0    |    1    |    1    |    4
+           *                     1    |    1    |    1    |    5
            */
         }
       }
@@ -121,33 +121,34 @@ void loop(void){
         control[i]=checkModes(); //get mode cobination value for recently touched rock selection electrode
       }
     }
-    if (radio.available()) {
-      radio.read(data, sizeof data);
-      switch (control[data[0]])
+    if (radio.available()) {    //when new data is available read it and send it through midi
+      radio.read(data, sizeof data);    //load buffer
+      switch (control[data[0]])   //choose mode for the channel received based on last time it was configured
       {
         case 0:
-          sendMIDI(data[2], data[0], data[1], data[3]);
+          sendMIDI(data[2], data[0], data[1], data[3]);     //Send data as received (default mode)
         break;
         case 1:
           randomSeed(data[1]);
-          sendMIDI(data[2], data[0], random(30,90), data[3]);
+          sendMIDI(data[2], data[0], random(30,90), data[3]);   //Send data with random notes between 30 and 90
         break;
         case 2:
-          sendMIDI(NOTE_ON, data[0], data[1], data[3]);
+          sendMIDI(NOTE_ON, data[0], data[1], data[3]);   //Send data continuously
         break;
         case 3:
-          sendMIDI(data[2], data[0], data[1], 127);
+          sendMIDI(data[2], data[0], data[1], 127);   //Send data at fixed velocity
         break;
         case 4:
-          sendMIDI(data[2], data[0], map(data[3],0,127,30,90), random(80,127));
+          randomSeed(data[1]);
+          sendMIDI(data[2], data[0], NOTES[random(0,sizeof(NOTES))], data[3]);   //Send data with random notes from NOTES
         break;
         case 5:
-          sendMIDI(data[2], data[0], data[1], random(80,127));
+          sendMIDI(data[2], data[0], 30+map(data[3],57,127,0,24), 127);   //Send notes that vary according to velocity
         break;
         default:
         break;
       }
     }
   #endif
-   lasttouched = currtouched;
+   lasttouched = currtouched;     //Store last value to compare and get new touches and releases
 }

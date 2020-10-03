@@ -1,4 +1,4 @@
-#include "src/RF24/RF24.h"
+ #include "src/RF24/RF24.h"
 #include "src/RF24/nRF24L01.h"
 #include "src/RF24/RF24_config.h"
 #include "src/MPR121/MPR121.h"
@@ -7,8 +7,7 @@
 
 //Radio instance and variables
 RF24 radio(PINCE, PINCS);
-uint8_t data[BUFF];
-
+uint8_t data[BUFF]; //data [0] is the channel - data[1] is hte note - data[2] es the message type - data[3] is the velocity
 //Sensor instance and variables
 MPR121 cap = MPR121();
 uint16_t lasttouched = 0;
@@ -24,7 +23,7 @@ void setup(void){     //call to all setup functions and start serial port
   MPRconfig();
   radio.begin();
   NRFconfig();
-  Serial.begin(115200);
+  Serial.begin(115200); 
 }
 
 void MPRconfig(){
@@ -33,6 +32,7 @@ void MPRconfig(){
    * Datasheet:
    * AN3889: https://www.nxp.com/docs/en/application-note/AN3889.pdf
    * AN3890: https://www.nxp.com/docs/en/application-note/AN3890.pdf
+   * 
    */
   cap.writeRegister(MPR121_NHDF, 0x1); //noise half delta (falling)
   cap.writeRegister(MPR121_FDLF, 0x3f); //filter delay limit (falling)
@@ -72,7 +72,7 @@ void sendMIDI(uint8_t messageType, uint8_t channel, uint8_t data1, uint8_t data2
   void sendRadio(int n) {
     data[0] = HEAD;     //envia el canal (Editar thisrock)
     data[1] = NOTES[n]; //envia la nota (Editar thisrock)
-    data[3] = constrain(map(cap.filteredData(n),720,400,0,127),0,127);      //get filtered capacitance (puede mejorarse)
+    data[3] = constrain(map(cap.filteredData(n),720,500,0,127),0,127);      //get filtered capacitance (puede mejorarse)
     if ((currtouched & _BV(n)) && !(lasttouched & _BV(n)) ) {     //check if there is a new touch on the electrode
       data[2] = NOTE_ON;
     }
@@ -119,31 +119,38 @@ void loop(void){
       if ((currtouched & _BV(ROCKS[i])) && !(lasttouched & _BV(ROCKS[i])))
       {
         control[i]=checkModes(); //get mode cobination value for recently touched rock selection electrode
-      }
+      }                 
     }
     if (radio.available()) {    //when new data is available read it and send it through midi
       radio.read(data, sizeof data);    //load buffer
       switch (control[data[0]])   //choose mode for the channel received based on last time it was configured
       {
         case 0:
+          //Serial.println("mode 0");
           sendMIDI(data[2], data[0], data[1], data[3]);     //Send data as received (default mode)
+                    sendMIDI(CC, data[0], data[1], data[3]);   //Send data continuously
+
         break;
         case 1:
-          randomSeed(data[1]);
+          //Serial.println("mode 1");
           sendMIDI(data[2], data[0], random(30,90), data[3]);   //Send data with random notes between 30 and 90
+          
         break;
         case 2:
-          sendMIDI(NOTE_ON, data[0], data[1], data[3]);   //Send data continuously
+          //Serial.println("mode 2");
+          sendMIDI(CC, data[0], data[1], data[3]);   //Send data continuously
+          
         break;
         case 3:
+          //Serial.println("mode 3");
           sendMIDI(data[2], data[0], data[1], 127);   //Send data at fixed velocity
         break;
         case 4:
-          randomSeed(data[1]);
+          //Serial.println("mode 4");
           sendMIDI(data[2], data[0], NOTES[random(0,sizeof(NOTES))], data[3]);   //Send data with random notes from NOTES
         break;
         case 5:
-          sendMIDI(data[2], data[0], 30+map(data[3],57,127,0,24), 127);   //Send notes that vary according to velocity
+            sendMIDI(data[2], data[0], data[1]+map(data[3],57,127,0,24), 127);   //Send notes that vary according to velocity
         break;
         default:
         break;

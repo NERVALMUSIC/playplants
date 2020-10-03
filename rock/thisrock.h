@@ -2,21 +2,24 @@
 //
 
 //Communications
-//  #define CONTROL true	// <-- Comentar para emisor
+ #define CONTROL true	// <-- Comentar para emisor
 
 #ifndef CONTROL
   #define HEAD 3			  // <-- Hardcode value between 1 and 5
 #endif
 
 //Thresholds
-#define TOUCH 15		//<-- optimize for plant
-#define RELEASE 1		//<-- optimize for plant
+#define TOUCH 30		//<-- optimize for CONTROL
+#define RELEASE 5		//<-- optimize for CONTROL
+//
+//#define TOUCH 30    //<-- optimize for PLANT
+//#define RELEASE 5   //<-- optimize for PLANT
 
 //Midi stuff
 const uint8_t NOTES[12]{41,53,45,57,44,56,65,77,69,81,38,50};   //<-- notes to play for this rock (set also for receiver in case it needs to be used)
 #ifdef CONTROL
-  const uint8_t MODES[3]{1,3,5};        //<-- Electrodes used for mode control (3 needed) up to 6 can be used
-  const uint8_t ROCKS[5]{7,8,9,10,11};  //<-- Electrodes used for rock selection (5 maximum rocks)
+  const uint8_t MODES[3]{0,1,2};        //<-- Electrodes used for mode control (3 needed) up to 6 can be used
+  const uint8_t ROCKS[5]{8,9,10,11};  //<-- Electrodes used for rock selection (5 maximum rocks)
 #endif
 const uint8_t NOTE_OFF = 0x80;          //<-- Used Midi message types
 const uint8_t NOTE_ON = 0x90;           //<-- Used Midi message types

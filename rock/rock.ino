@@ -1,10 +1,10 @@
- #include "src/RF24/RF24.h"
+#include "src/RF24/RF24.h"
 #include "src/RF24/nRF24L01.h"
 #include "src/RF24/RF24_config.h"
 #include "src/MPR121/MPR121.h"
 #include "thisrock.h"
 #include <SPI.h>
-
+#define DEBUG
 //Radio instance and variables
 RF24 radio(PINCE, PINCS);
 uint8_t data[BUFF]; //data [0] is the channel - data[1] is hte note - data[2] es the message type - data[3] is the velocity
@@ -23,7 +23,7 @@ void setup(void){     //call to all setup functions and start serial port
   MPRconfig();
   radio.begin();
   NRFconfig();
-  Serial.begin(115200); 
+  Serial.begin(115200);
 }
 
 void MPRconfig(){
@@ -32,7 +32,6 @@ void MPRconfig(){
    * Datasheet:
    * AN3889: https://www.nxp.com/docs/en/application-note/AN3889.pdf
    * AN3890: https://www.nxp.com/docs/en/application-note/AN3890.pdf
-   * 
    */
   cap.writeRegister(MPR121_NHDF, 0x1); //noise half delta (falling)
   cap.writeRegister(MPR121_FDLF, 0x3f); //filter delay limit (falling)
@@ -40,6 +39,7 @@ void MPRconfig(){
 }
 
 void NRFconfig(void){   //Radio stuff don't look
+  radio.setChannel(111);
   #ifdef CONTROL
     for(int i = 0; i < 5; i += 1){
       radio.openReadingPipe(i+1,PIPES[i]);
@@ -72,18 +72,31 @@ void sendMIDI(uint8_t messageType, uint8_t channel, uint8_t data1, uint8_t data2
   void sendRadio(int n) {
     data[0] = HEAD;     //envia el canal (Editar thisrock)
     data[1] = NOTES[n]; //envia la nota (Editar thisrock)
-    data[3] = constrain(map(cap.filteredData(n),720,500,0,127),0,127);      //get filtered capacitance (puede mejorarse)
+    #ifdef DEBUG
+    Serial.print("Baseline");Serial.print("\t|\t");Serial.println("Filtered");
+    Serial.print(cap.baseline(n));Serial.print("\t|\t");Serial.println(cap.filteredData(n));
+    #endif
+    data[3] = constrain(map(cap.baseline(n)-cap.filteredData(n),0,200,0,127),0,127);      //get filtered capacitance (puede mejorarse)
     if ((currtouched & _BV(n)) && !(lasttouched & _BV(n)) ) {     //check if there is a new touch on the electrode
       data[2] = NOTE_ON;
     }
     else if (!(currtouched & _BV(n)) && (lasttouched & _BV(n))) {   //check if the touch has just been lifted
       data[2] = NOTE_OFF;
+      radio.write(data, sizeof data);
+      #ifdef DEBUG
+      Serial.print("Canal | ");Serial.print("Mensaje | ");Serial.print("Nota | ");Serial.println("Velocity | ");
+      Serial.print(data[0]);Serial.print("\t|\t");Serial.print(data[2]);Serial.print("\t|\t");Serial.print(data[1]);Serial.print("\t|\t");Serial.println(data[3]);
+      #endif
     }
     else{
-      data[2] = KEY_PRESSURE;     //use the aftertouch message in this case as it seems appropiate (can be used as a modulator)
+      data[2] = CC;     //use the Control Change message in this case to be used for special purposes
     }
     if(currtouched & _BV(n)){      // Only send data if someone is touching the electrode
       radio.write(data, sizeof data);
+      #ifdef DEBUG
+      Serial.print("Canal | ");Serial.print("Mensaje | ");Serial.print("Nota | ");Serial.println("Velocity | ");
+      Serial.print(data[0]);Serial.print(" | ");Serial.print(data[2]);Serial.print(" | ");Serial.print(data[1]);Serial.print(" | ");Serial.println(data[3]);
+      #endif
     }
   }
 
@@ -100,9 +113,9 @@ void sendMIDI(uint8_t messageType, uint8_t channel, uint8_t data1, uint8_t data2
            *                     0    |    0    |    0    |    0
            *                     0    |    0    |    1    |    1
            *                     0    |    1    |    0    |    2
-           *                     1    |    0    |    0    |    3
-           *                     0    |    1    |    1    |    4
-           *                     1    |    1    |    1    |    5
+           *                     0    |    1    |    1    |    3
+           *                     1    |    0    |    0    |    4
+           *                     1    |    0    |    1    |    5
            */
         }
       }
@@ -119,7 +132,7 @@ void loop(void){
       if ((currtouched & _BV(ROCKS[i])) && !(lasttouched & _BV(ROCKS[i])))
       {
         control[i]=checkModes(); //get mode cobination value for recently touched rock selection electrode
-      }                 
+      }
     }
     if (radio.available()) {    //when new data is available read it and send it through midi
       radio.read(data, sizeof data);    //load buffer

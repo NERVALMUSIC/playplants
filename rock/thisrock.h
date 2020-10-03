@@ -2,10 +2,10 @@
 //
 
 //Communications
- #define CONTROL true	// <-- Comentar para emisor
+// #define CONTROL true	// <-- Comentar para emisor
 
 #ifndef CONTROL
-  #define HEAD 3			  // <-- Hardcode value between 1 and 5
+  #define HEAD 0			  // <-- Hardcode value between 1 and 5
 #endif
 
 //Thresholds

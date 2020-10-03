@@ -4,7 +4,8 @@
 #include "src/MPR121/MPR121.h"
 #include "thisrock.h"
 #include <SPI.h>
-#define DEBUG
+
+//#define DEBUG //Uncomment for debug
 //Radio instance and variables
 RF24 radio(PINCE, PINCS);
 uint8_t data[BUFF]; //data [0] is the channel - data[1] is hte note - data[2] es the message type - data[3] is the velocity
@@ -63,20 +64,21 @@ void sendMIDI(uint8_t messageType, uint8_t channel, uint8_t data1, uint8_t data2
   statusByte  |= 0b10000000;                   // Set the most significant bit of the status byte
   data1       &= 0b01111111;                   // Clear the most significant bit of the data bytes
   data2       &= 0b01111111;
+  #ifdef DEBUG
+  Serial.print("Channel");Serial.print("\t|\t");Serial.print("Message");Serial.print("Byte 1");Serial.print("\t|\t");Serial.print("\t|\t");Serial.println("Byte 2");
+  Serial.print(channel);Serial.print("\t|\t");Serial.print(messageType);Serial.print(data1);Serial.print("\t|\t");Serial.print("\t|\t");Serial.println(data2);
+  #else
   Serial.write(statusByte);                    // Send over Serial
   Serial.write(data1);
   Serial.write(data2);
+  #endif
 }
 
 #ifndef CONTROL   // Transmiter code
   void sendRadio(int n) {
     data[0] = HEAD;     //envia el canal (Editar thisrock)
     data[1] = NOTES[n]; //envia la nota (Editar thisrock)
-    #ifdef DEBUG
-    Serial.print("Baseline");Serial.print("\t|\t");Serial.println("Filtered");
-    Serial.print(cap.baseline(n));Serial.print("\t|\t");Serial.println(cap.filteredData(n));
-    #endif
-    data[3] = constrain(map(cap.baseline(n)-cap.filteredData(n),0,200,0,127),0,127);      //get filtered capacitance (puede mejorarse)
+    data[3] = constrain(map(cap.filteredData(n),700,500,0,127),0,127);      //get filtered capacitance (puede mejorarse)
     if ((currtouched & _BV(n)) && !(lasttouched & _BV(n)) ) {     //check if there is a new touch on the electrode
       data[2] = NOTE_ON;
     }
@@ -84,8 +86,8 @@ void sendMIDI(uint8_t messageType, uint8_t channel, uint8_t data1, uint8_t data2
       data[2] = NOTE_OFF;
       radio.write(data, sizeof data);
       #ifdef DEBUG
-      Serial.print("Canal | ");Serial.print("Mensaje | ");Serial.print("Nota | ");Serial.println("Velocity | ");
-      Serial.print(data[0]);Serial.print("\t|\t");Serial.print(data[2]);Serial.print("\t|\t");Serial.print(data[1]);Serial.print("\t|\t");Serial.println(data[3]);
+      Serial.print("Canal | ");Serial.print("Mensaje | ");Serial.print("Nota | ");Serial.print("Raw | ");Serial.println("Velocity | ");
+      Serial.print(data[0]);Serial.print("\t|\t");Serial.print(data[2]);Serial.print("\t|\t");Serial.print(data[1]);Serial.print("\t|\t");Serial.print(cap.filteredData(n)-cap.baselineData(n));Serial.print("\t|\t");Serial.println(data[3]);
       #endif
     }
     else{
@@ -94,8 +96,8 @@ void sendMIDI(uint8_t messageType, uint8_t channel, uint8_t data1, uint8_t data2
     if(currtouched & _BV(n)){      // Only send data if someone is touching the electrode
       radio.write(data, sizeof data);
       #ifdef DEBUG
-      Serial.print("Canal | ");Serial.print("Mensaje | ");Serial.print("Nota | ");Serial.println("Velocity | ");
-      Serial.print(data[0]);Serial.print(" | ");Serial.print(data[2]);Serial.print(" | ");Serial.print(data[1]);Serial.print(" | ");Serial.println(data[3]);
+      Serial.print("Canal | ");Serial.print("Mensaje | ");Serial.print("Nota | ");Serial.print("Raw | ");Serial.println("Velocity | ");
+      Serial.print(data[0]);Serial.print("\t|\t");Serial.print(data[2]);Serial.print("\t|\t");Serial.print(data[1]);Serial.print("\t|\t");Serial.print(cap.filteredData(n)-cap.baselineData(n));Serial.print("\t|\t");Serial.println(data[3]);
       #endif
     }
   }
@@ -141,29 +143,32 @@ void loop(void){
         case 0:
           //Serial.println("mode 0");
           sendMIDI(data[2], data[0], data[1], data[3]);     //Send data as received (default mode)
-                    sendMIDI(CC, data[0], data[1], data[3]);   //Send data continuously
-
         break;
         case 1:
           //Serial.println("mode 1");
-          sendMIDI(data[2], data[0], random(30,90), data[3]);   //Send data with random notes between 30 and 90
+          sendMIDI(data[2], data[0], NOTES[random(0,sizeof(NOTES))], data[3]);   //Send random notes from NOTES (see thisrock)
           
         break;
         case 2:
           //Serial.println("mode 2");
-          sendMIDI(CC, data[0], data[1], data[3]);   //Send data continuously
+          sendMIDI(CC, data[0], data[1], data[3]);   //Send Control changes only
           
         break;
         case 3:
           //Serial.println("mode 3");
-          sendMIDI(data[2], data[0], data[1], 127);   //Send data at fixed velocity
+          sendMIDI(data[2], data[0], data[1], 127);   //Send data at maximum velocity when touched
         break;
         case 4:
           //Serial.println("mode 4");
-          sendMIDI(data[2], data[0], NOTES[random(0,sizeof(NOTES))], data[3]);   //Send data with random notes from NOTES
+          sendMIDI(data[2], data[0], NOTES[map(data[3],50,120,0,sizeof(NOTES))], data[3]);   //Send NOTES depending on intensity
         break;
         case 5:
-            sendMIDI(data[2], data[0], data[1]+map(data[3],57,127,0,24), 127);   //Send notes that vary according to velocity
+          //Serial.println("mode5");
+            if( data[2] == NOTE_ON){
+              sendMIDI(data[2], data[0], data[1], data[3]);     //Send notes with sostenuto
+              sendMIDI(CC, data[0], 66, 127);   //Add sostenuto
+            }
+            else{sendMIDI(data[2], data[0], data[1], data[3]);}     //Send NoteOFF and CC data
         break;
         default:
         break;

@@ -9,14 +9,16 @@
 #endif
 
 //Thresholds
-#define TOUCH 30		//<-- optimize for CONTROL
+#define TOUCH 20		//<-- optimize for CONTROL
 #define RELEASE 5		//<-- optimize for CONTROL
 //
 //#define TOUCH 30    //<-- optimize for PLANT
 //#define RELEASE 5   //<-- optimize for PLANT
 
 //Midi stuff
-const uint8_t NOTES[12]{41,53,45,57,44,56,65,77,69,81,38,50};   //<-- notes to play for this rock (set also for receiver in case it needs to be used)
+const uint8_t NOTES[ 4 ][ 12 ] = { {50,53,57,60,62,65,69,72,74,77,81,84}, {60,63,67,70,72,75,79,82,84,87,91,94} , {70,73,77,80,82,85,89,92,94,97,101,104}, {60,63,67,70,72,75,79,82,84,87,91,94} };
+//<-- notes to play for this rock (set also for receiver in case it needs to be used)
+  
 #ifdef CONTROL
   const uint8_t MODES[3]{0,1,2};        //<-- Electrodes used for mode control (3 needed) up to 6 can be used
   const uint8_t ROCKS[5]{8,9,10,11};  //<-- Electrodes used for rock selection (5 maximum rocks)

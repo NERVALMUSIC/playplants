@@ -1,3 +1,0 @@
-Plant	KEYWORD1
-begin	KEYWORD2
-leaf	KEYWORD2

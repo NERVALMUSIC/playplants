@@ -14,7 +14,7 @@ uint8_t data[BUFF]; //data [0] is the channel - data[1] is hte note - data[2] es
 int16_t maxdiff[SENSORS];
 int16_t mindiff[SENSORS];
 int16_t filteredCC[SENSORS];
-uint8_t windowCount = 1;
+uint8_t windowCount = 0;
 
 //Midi instance
 #ifdef CONTROL
@@ -52,8 +52,9 @@ void MPRconfig(){
   */
   
     MPR121.setProxMode(PROX_0_11);
-    delay(500);
-    MPR121.autoSetElectrodes(false);  // autoset all electrode settings    
+    delay(200);
+    MPR121.autoSetElectrodes(false);  // autoset all electrode settings
+    delay(200);    
 
 
 }
@@ -91,9 +92,16 @@ void debug(){
       data[2] = CC;
       data[3] = map(diff,maxdiff[n],mindiff[n],0,127);
       if (n == 12 ){
-        if(data[3] >=20){ 
-          radio.write(data, sizeof data);
-          debug();
+        if(data[3] >=10){
+          filteredCC[n] += data[3];
+          windowCount += 1;
+          if(windowCount == WINDOW){
+            data[3] = filteredCC[n] / WINDOW;
+            windowCount = 1;
+            filteredCC[n] = 0; 
+            radio.write(data, sizeof data);
+            debug();
+          }
         }
       }
       else if (MPR121.isNewTouch(n) ) {     //check if there is a new touch on the electrode
@@ -107,14 +115,16 @@ void debug(){
         debug();
       }
       else if(MPR121.getTouchData(n)){
-        //filteredCC[n] += data[3];
-        //windowCount += 1;
-        //if(windowCount == WINDOW){
-        //  data[3] =filteredCC[n] / WINDOW;
+        filteredCC[n] += data[3];
+        windowCount += 1;
+        if(windowCount == WINDOW){
+          data[3] = filteredCC[n] / WINDOW;
+          windowCount = 1;
+          filteredCC[n] = 0; 
           radio.write(data, sizeof data);
           debug();
-        //  windowCount == 1;
-        //}
+          windowCount == 1;
+        }
       }
     }
   }
@@ -141,26 +151,21 @@ void debug(){
     {
       case 0:
       if( data[1] != 12 && (data[2] == NOTE_ON || data[2] == NOTE_OFF)){
-        sendMIDI(data[2], data[0], data[1], data[3]);     //Send data as received (default mode)
+        sendMIDI(data[2], data[0], NOTES1[data[0]][data[1]], data[3]);     //Send notes when touched
       }
       break;
       case 1:
-      if( data[2] == CC && data[1] != 12){
-        sendMIDI(data[2], data[0], NOTES[data[0]][data[1]], data[3]);     //Send data as received (default mode)
+      if( data[1] != 12){
+        sendMIDI(data[2], data[0], NOTES2[data[0]][data[1]], data[3]);     //Send CC based on intensity
       }
       break;
       case 2:
       if( data[1] == 12){
-        sendMIDI(data[2], data[0], NOTES2[data[0]][data[1]], data[3]);     //Send data as received (default mode)
-      }
-      break;
-      case 3:
-      if( data[2] == CC){
-        sendMIDI(data[2], data[0], NOTES2[data[0]][data[1]], data[3]);     //Send data as received (default mode)
+        sendMIDI(data[2], data[0], NOTESPROX[data[0]], data[3]);     //Send CC based on proximity to rock
       }
       break;
       default:
-      sendMIDI(data[2], data[0], NOTES[data[0]][data[1]], data[3]);     //Send data as received (default mode)
+      sendMIDI(data[2], data[0], data[1], data[3]);     //Send data as received (default mode)
       break;
     }
   }

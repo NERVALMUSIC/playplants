@@ -2,14 +2,14 @@
 //
 
 //Defines
-#define CONTROL true	// <-- Comentar para emisor
+//#define CONTROL true	// <-- Comentar para emisor
 #define DEBUG //Uncomment for debug
 
 //Sensor Stuff
 #ifndef CONTROL
   #define HEAD 1			  // <-- Hardcode value between 1 and 4
   #define TOUCH 20   //<-- optimize for PLANT
-  #define RELEASE 2   //<-- optimize for PLANT
+  #define RELEASE 5   //<-- optimize for PLANT
 #else
   #define HEAD 10
   #define TOUCH 20   //<-- optimize for PLANT
@@ -17,8 +17,9 @@
 #endif
 
 //Midi stuff
-const uint8_t NOTES[ 4 ][ 12 ] = { {50, 53, 57, 60, 62, 65, 69, 72, 74, 77, 81, 84}, {60, 63, 67, 70, 72, 75, 79, 82, 84, 87, 91, 94} , {70, 73, 77, 80, 82, 85, 89, 92, 94, 97, 101, 104}, {60, 63, 67, 70, 72, 75, 79, 82, 84, 87, 91, 94} };
-const uint8_t NOTES2[ 4 ][ 12 ] = { {50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50}, {60, 60, 60, 60, 60, 60, 60, 60, 60, 60, 60, 60} , {70, 70, 70, 70, 70, 70, 70, 70, 70, 70, 70, 70}, {80, 80, 80, 80, 80, 80, 80, 80, 80, 80, 80, 80} };
+const uint8_t NOTES1[ 4 ][ 12 ] = { {50, 53, 57, 60, 62, 65, 69, 72, 74, 77, 81, 84}, {60, 63, 67, 70, 72, 75, 79, 82, 84, 87, 91, 94} , {70, 73, 77, 80, 82, 85, 89, 92, 94, 97, 101, 104}, {60, 63, 67, 70, 72, 75, 79, 82, 84, 87, 91, 94} };
+const uint8_t NOTES2[ 4 ][ 12 ] = { {50, 53, 57, 60, 62, 65, 69, 72, 74, 77, 81, 84}, {60, 63, 67, 70, 72, 75, 79, 82, 84, 87, 91, 94} , {70, 73, 77, 80, 82, 85, 89, 92, 94, 97, 101, 104}, {60, 63, 67, 70, 72, 75, 79, 82, 84, 87, 91, 94} };
+const uint8_t NOTESPROX[ 4 ] = { 50, 60, 70, 80 };
 //<-- notes to play for this rock (set also for receiver in case it needs to be used)
 
 #ifdef CONTROL
@@ -39,7 +40,7 @@ const uint8_t PITCH_BEND = 0xE0;        //<-- Used Midi message types
 //Sensor stuf
 #define I2CADDR 0x5A
 #define SENSORS 13
-#define WINDOW 100
+#define WINDOW 25
 
 //Radio stuff
 const uint64_t PIPES[4] {0xF0F0F0F0D2LL,  0xF0F0F0F0C3LL, 0xF0F0F0F0B4LL, 0xF0F0F0F0A5LL};

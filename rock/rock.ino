@@ -14,11 +14,12 @@ uint8_t data[BUFF]; //data [0] is the channel - data[1] is hte note - data[2] es
 int16_t maxdiff[SENSORS];
 int16_t mindiff[SENSORS];
 int16_t filteredCC[SENSORS];
-uint8_t windowCount = 0;
+uint8_t windowCount[SENSORS];
+bool touching[SENSORS];
 
 //Midi instance
 #ifdef CONTROL
-  uint8_t control[sizeof(ROCKS)];      //variable to set operation mode for each connected rock
+  uint8_t mode[sizeof(ROCKS)];      //variable to set operation mode for each connected rock
 #endif
 
 void setup(void){     //call to all setup functions and start serial port
@@ -45,23 +46,26 @@ void MPRconfig(){
     MPR121.goFast();      //I2C speed
     MPR121.setTouchThreshold(TOUCH);      //Set Thresholds
     MPR121.setReleaseThreshold(RELEASE);  //Set Thresholds
+    MPR121.setProxMode(PROX_0_11);  //PROX_DISABLED PROX_0_1 PROX_0_3 PROX_0_11
+    //MPR121.setCalibrationLock(CAL_LOCK_DISABLED); //CAL_LOCK_ENABLED CAL_LOCK_DISABLED CAL_LOCK_ENABLED_5_BIT_COPY CAL_LOCK_ENABLED_10_BIT_COPY
+    
   /*
   * Optional settings, test best configuration for each plant,
   * see datasheet and application notes to better understand how
   * to change these settings.
   */
   
-    MPR121.setProxMode(PROX_0_11);
     delay(200);
     MPR121.autoSetElectrodes(false);  // autoset all electrode settings
+    //MPR121.autoSetElectrodeCDC();
     delay(200);    
-
 
 }
 
 void NRFconfig(void){   //Radio stuff don't look
   radio.setChannel(120);
-  radio.setPALevel(RF24_PA_LOW);
+  radio.setPALevel(RF24_PA_HIGH); //RF24_PA_MIN RF24_PA_LOW RF24_PA_HIGH RF24_PA_MAX
+  radio.setDataRate(RF24_1MBPS);  //RF24_250KBPS RF24_1MBPS RF24_2MBPS
   #ifdef CONTROL
     for(int i = 0; i < 4; i += 1){
       radio.openReadingPipe(i+1,PIPES[i]);
@@ -84,6 +88,7 @@ void debug(){
   void sendRadio() {
     data[0] = HEAD;     //envia el canal (Editar thisrock)
     MPR121.updateAll();
+    //delay(10);
     for(uint8_t n=0; n<SENSORS; n++){
       int16_t diff = MPR121.getFilteredData(n)-MPR121.getBaselineData(n);
       if( diff > maxdiff[n]){maxdiff[n] = diff;}
@@ -91,39 +96,49 @@ void debug(){
       data[1] = n; //envia la nota (Editar thisrock)
       data[2] = CC;
       data[3] = map(diff,maxdiff[n],mindiff[n],0,127);
-      if (n == 12 ){
-        if(data[3] >=10){
-          filteredCC[n] += data[3];
-          windowCount += 1;
-          if(windowCount == WINDOW){
-            data[3] = filteredCC[n] / WINDOW;
-            windowCount = 1;
-            filteredCC[n] = 0; 
-            radio.write(data, sizeof data);
-            debug();
-          }
-        }
-      }
-      else if (MPR121.isNewTouch(n) ) {     //check if there is a new touch on the electrode
+
+      if (MPR121.isNewTouch(n) && n != 12 ) {     //check if there is a new touch on the electrode
         data[2] = NOTE_ON;
         radio.write(data, sizeof data);
         debug();
+        touching[n] = true;
       }
-      else if (MPR121.isNewRelease(n)) {   //check if the touch has just been lifted
+      
+      else if (MPR121.isNewRelease(n) && n != 12 ) {   //check if the touch has just been lifted
         data[2] = NOTE_OFF;
         radio.write(data, sizeof data);
         debug();
+        touching[n] = false;
       }
-      else if(MPR121.getTouchData(n)){
-        filteredCC[n] += data[3];
-        windowCount += 1;
-        if(windowCount == WINDOW){
+      
+      if (n == 12 ){
+        if(data[3] >=20){
+          if(windowCount[n] == WINDOW){
+            data[3] = filteredCC[n] / WINDOW;
+            windowCount[n] = 0;
+            filteredCC[n] = 0; 
+            radio.write(data, sizeof data);
+            //debug();
+          }
+          else{
+            filteredCC[n] = filteredCC[n] + int16_t(data[3]);
+            windowCount[n] += 1;
+          }
+        }
+        touching[n] = false;
+      }
+      
+      if(touching[n] == true){
+        if(windowCount[n] == WINDOW){
           data[3] = filteredCC[n] / WINDOW;
-          windowCount = 1;
+          windowCount[n] = 0;
           filteredCC[n] = 0; 
           radio.write(data, sizeof data);
           debug();
-          windowCount == 1;
+        }
+        else{
+          filteredCC[n] = filteredCC[n] + int16_t(data[3]);
+          windowCount[n] += 1;
         }
       }
     }
@@ -137,17 +152,22 @@ void debug(){
        if(MPR121.getTouchData(ROCKS[n])){
          for(uint8_t m=0; m < sizeof(MODES); m++){
            if(MPR121.getTouchData(MODES[m])){
-             control[n] = m;
+             mode[n] = m;
            }
          }
+         if(MPR121.getTouchData(STOP)){
+          for(uint8_t m=0; m<128; m++){
+                  sendMIDI(NOTE_OFF, n+1, m, 0);     //Send data as received (default mode)
+                }
+         }
        while(!MPR121.isNewRelease(ROCKS[n])){MPR121.updateTouchData();}       
-        sendMIDI(CC, HEAD, 20+n, control[n]);     //Send data as received (default mode)   
+       sendMIDI(CC, HEAD, 20+n, mode[n]);     //Send data as received (default mode)   
        }
      }
   }
-  
+   
   void playMusic() {
-    switch (control[data[0]-1])   //choose mode for the channel received based on last time it was configured
+    switch (mode[data[0]-1])   //choose mode for the channel received based on last time it was configured
     {
       case 0:
       if( data[1] != 12 && (data[2] == NOTE_ON || data[2] == NOTE_OFF)){
@@ -155,8 +175,11 @@ void debug(){
       }
       break;
       case 1:
+      if( data[1] != 12 && (data[2] == NOTE_ON || data[2] == NOTE_OFF)){
+        sendMIDI(data[2], data[0], NOTES2[data[0]][data[1]], data[3]);     //Send notes when touched
+      }
       if( data[1] != 12){
-        sendMIDI(data[2], data[0], NOTES2[data[0]][data[1]], data[3]);     //Send CC based on intensity
+        sendMIDI(data[2], data[0], NOTESCC[data[0]][data[1]], data[3]);     //Send CC based on intensity
       }
       break;
       case 2:
@@ -187,6 +210,7 @@ void debug(){
   Serial.print("Channel");Serial.print("\t|");Serial.print("Message");Serial.print("\t|");Serial.print("Byte 1");Serial.print("\t|");Serial.println("Byte 2");
   Serial.print(channel);Serial.print("\t|");Serial.print(messageType,HEX);Serial.print("\t\t|");Serial.print(data1);Serial.print("\t|");Serial.println(data2);
   #else
+  statusByte -= 1;        // to correct hairlessmidi offset
   Serial.write(statusByte);                    // Send over Serial
   Serial.write(data1);
   Serial.write(data2);

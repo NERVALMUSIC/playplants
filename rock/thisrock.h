@@ -3,30 +3,36 @@
 
 //Defines
 #define CONTROL true	// <-- Comentar para emisor
-//#define DEBUG //Uncomment for debug
+#define DEBUG //Uncomment for debug
 
 //Sensor Stuff
 #ifndef CONTROL
-  #define HEAD 4			  // <-- Hardcode value between 1 and 4
+  #define HEAD 1			  // <-- Hardcode value between 1 and 4
   #define TOUCH 20
   #define RELEASE 10
+  mpr121_proxmode_type  prox_mode = PROX_0_3; //PROX_DISABLED PROX_0_1 PROX_0_3 PROX_0_11 (no proximidad, 2 sensores, 4 sensores, 12 sensores)
 #else
   #define HEAD 10  // <-- Midi channel for control keypad
   #define TOUCH 20
   #define RELEASE 10
+  mpr121_proxmode_type  prox_mode = PROX_DISABLED;
 #endif
 
 //Midi stuff
-const uint8_t NOTES1[ 4 ][ 12 ] = { {50, 53, 57, 60, 62, 65, 69, 72, 74, 77, 81, 84}, {60, 63, 67, 70, 72, 75, 79, 82, 84, 87, 91, 94} , {70, 73, 77, 80, 82, 85, 89, 92, 94, 97, 101, 104}, {60, 63, 67, 70, 72, 75, 79, 82, 84, 87, 91, 94} };
-const uint8_t NOTES2[ 4 ][ 12 ] = { {50, 53, 57, 60, 62, 65, 69, 72, 74, 77, 81, 84}, {60, 63, 67, 70, 72, 75, 79, 82, 84, 87, 91, 94} , {70, 73, 77, 80, 82, 85, 89, 92, 94, 97, 101, 104}, {60, 63, 67, 70, 72, 75, 79, 82, 84, 87, 91, 94} };
-const uint8_t NOTESCC[ 4 ][ 12 ] = { {20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31}, {20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31} , {20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31}, {20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31} };
-const uint8_t NOTESPROX[ 4 ] = { 110, 111, 112, 113 };
-//<-- notes to play for this rock (set also for receiver in case it needs to be used)
+const uint8_t NOTES1[ 4 ][ 12 ] = { {60, 64, 67, 71, 74, 77, 81, 84, 88, 91, 95, 95}, {60, 64, 67, 71, 74, 77, 81, 84, 88, 91, 95, 95} , {60, 64, 67, 71, 74, 77, 81, 84, 88, 91, 95, 95}, {60, 64, 67, 71, 74, 77, 81, 84, 88, 91, 95, 95} };
+const uint8_t MODES1[4] = {0, 0, 0, 0};      //<-- Electrodes used for mode control (5 modes) // 0 is note on-off, 1 is notes with Control Change, 2 is proximity, 3 is counter, 4 is random
+const uint8_t NOTES2[ 4 ][ 12 ] = { {60, 64, 67, 71, 74, 77, 81, 84, 88, 91, 95, 95}, {60, 64, 67, 71, 74, 77, 81, 84, 88, 91, 95, 95} , {60, 64, 67, 71, 74, 77, 81, 84, 88, 91, 95, 95}, {60, 64, 67, 71, 74, 77, 81, 84, 88, 91, 95, 95} };
+const uint8_t MODES2[4] = {1, 0, 0, 0};      //<-- Electrodes used for mode control (5 modes) // 0 is note on-off, 1 is notes with Control Change, 2 is proximity, 3 is counter, 4 is random
+const uint8_t NOTES3[ 4 ][ 12 ] = { {60, 64, 67, 71, 74, 77, 81, 84, 88, 91, 95, 95}, {60, 64, 67, 71, 74, 77, 81, 84, 88, 91, 95, 95} , {60, 64, 67, 71, 74, 77, 81, 84, 88, 91, 95, 95}, {60, 64, 67, 71, 74, 77, 81, 84, 88, 91, 95, 95} };
+const uint8_t MODES3[4] = {2, 0, 0, 0};      //<-- Electrodes used for mode control (5 modes) // 0 is note on-off, 1 is notes with Control Change, 2 is proximity, 3 is counter, 4 is random
+const uint8_t NOTES4[ 4 ][ 12 ] = { {60, 64, 67, 71, 74, 77, 81, 84, 88, 91, 95, 95}, {60, 64, 67, 71, 74, 77, 81, 84, 88, 91, 95, 95} , {60, 64, 67, 71, 74, 77, 81, 84, 88, 91, 95, 95}, {60, 64, 67, 71, 74, 77, 81, 84, 88, 91, 95, 95} };
+const uint8_t MODES4[4] = {3, 0, 0, 0};      //<-- Electrodes used for mode control (5 modes) // 0 is note on-off, 1 is notes with Control Change, 2 is proximity, 3 is counter, 4 is random
+const uint8_t NOTES5[ 4 ][ 12 ] = { {60, 64, 67, 71, 74, 77, 81, 84, 88, 91, 95, 95}, {60, 64, 67, 71, 74, 77, 81, 84, 88, 91, 95, 95} , {60, 64, 67, 71, 74, 77, 81, 84, 88, 91, 95, 95}, {60, 64, 67, 71, 74, 77, 81, 84, 88, 91, 95, 95} };
+const uint8_t MODES5[4] = {4, 0, 0, 0};      //<-- Electrodes used for mode control (5 modes) // 0 is note on-off, 1 is notes with Control Change, 2 is proximity, 3 is counter, 4 is random
 
 #ifdef CONTROL
-const uint8_t MODES[4] = {0, 3, 4, 6};      //<-- Electrodes used for mode control (3 minimum modes)
-const uint8_t ROCKS[4] = {1, 2, 5, 10};      //<-- Electrodes used for rock selection (4 maximum rocks)
-const uint8_t STOP = 11;       //<-- Electrode used for Control Change commands
+const uint8_t MODENOMIDI = 1;       //<-- Electrode used for MODE change with midi feedback
+const uint8_t MODEMIDI = 0;       //<-- Electrode used for MODE change with midi feedback
 
 #endif
 const uint8_t NOTE_OFF = 0x80;          //<-- Used Midi message types
@@ -42,8 +48,10 @@ const uint8_t PITCH_BEND = 0xE0;        //<-- Used Midi message types
 
 //Sensor stuf
 #define I2CADDR 0x5A
-#define SENSORS 13
 #define WINDOW 25
+#define SENSORS 13 // number of sensors + proximity
+#define MINPROX -25
+#define MAXPROX 6
 
 //Radio stuff
 const uint64_t PIPES[4] {0xF0F0F0F0D2LL,  0xF0F0F0F0C3LL, 0xF0F0F0F0B4LL, 0xF0F0F0F0A5LL};

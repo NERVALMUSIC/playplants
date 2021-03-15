@@ -3,7 +3,7 @@
 
 //Defines
 #define CONTROL true	// <-- Comentar para emisor
-#define DEBUG //Uncomment for debug
+//#define DEBUG //Uncomment for debug
 
 //Sensor Stuff
 #ifndef CONTROL
@@ -17,6 +17,16 @@
   #define RELEASE 10
   mpr121_proxmode_type  prox_mode = PROX_DISABLED;
 #endif
+/*ARRAYS para MODOS Y NOTAS
+NOTE son las arrays para cada planta y modo
+Los MODES son:
+MODE0 =Send notes basic.
+MODE1 = Send notes with control change while touching.
+MODE2 = Send proximity value of first note of its array.
+MODE3 = COUNT UP from first note of its array, ecah touch next note. Fixed intensity
+MODE4 = Send random values from array on touching
+*/
+
 
 //Midi stuff
 const uint8_t NOTES1[ 4 ][ 12 ] = { {60, 64, 67, 71, 74, 77, 81, 84, 88, 91, 95, 95}, {60, 64, 67, 71, 74, 77, 81, 84, 88, 91, 95, 95} , {60, 64, 67, 71, 74, 77, 81, 84, 88, 91, 95, 95}, {60, 64, 67, 71, 74, 77, 81, 84, 88, 91, 95, 95} };

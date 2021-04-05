@@ -3,7 +3,7 @@
 
 //Defines
 #define CONTROL true	// <-- Comentar para emisor
-#define DEBUG //Uncomment for debug
+//#define DEBUG //Uncomment for debug
 
 //Sensor Stuff
 #ifndef CONTROL
@@ -59,6 +59,16 @@
   const uint8_t NOTE_GO = 60;              //<-- Electrode used for MODE increase
   const uint8_t NOTE_GO_BACK = 64;         //<-- Electrode used for MODE decrease
 #endif
+/*ARRAYS para MODOS Y NOTAS
+NOTE son las arrays para cada planta y modo
+Los MODES son:
+MODE0 =Send notes basic.
+MODE1 = Send notes with control change while touching.
+MODE2 = Send proximity value of first note of its array.
+MODE3 = COUNT UP from first note of its array, ecah touch next note. Fixed intensity
+MODE4 = Send random values from array on touching
+*/
+
 
 const uint8_t NOTE_OFF = 0x80;          //<-- Used Midi message types
 const uint8_t NOTE_ON = 0x90;           //<-- Used Midi message types

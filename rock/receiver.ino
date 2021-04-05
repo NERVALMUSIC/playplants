@@ -1,32 +1,32 @@
 #ifdef CONTROL   //Receiver funcions
 
-  void playModes() {
-    switch (modes[data[0]-1])   //choose mode for the channel received based on last time it was configured
+  void receiver() {
+    switch (modes[payload.channel-1])   //choose mode for the channel received based on last time it was configured
     {
       case 0:
-        if( data[1] != 12 && (data[2] == NOTE_ON || data[2] == NOTE_OFF)){
-          sendMIDI(data[2], data[0], notes[data[0]][data[1]], data[3]);     //Send notes when touched
+        if( payload.note != 12 && (payload.message == NOTE_ON || payload.message == NOTE_OFF)){
+          sendMIDI(payload.message, payload.channel, notes[payload.channel][payload.note], payload.velocity);     //Send notes when touched
         }
       break;
       case 1:
-        if( data[1] != 12){
-          sendMIDI(data[2], data[0], notes[data[0]][data[1]], data[3]);     //Send CC based on intensity
+        if( payload.note != 12){
+          sendMIDI(payload.message, payload.channel, notes[payload.channel][payload.note], payload.velocity);     //Send CC based on intensity
         }
       break;
       case 2:
-        if( data[1] == 12){
-          sendMIDI(data[2], data[0], notes[data[0]][0], data[3]);     //Send CC based on proximity to rock
+        if( payload.note == 12){
+          sendMIDI(payload.message, payload.channel, notes[payload.channel][0], payload.velocity);     //Send CC based on proximity to rock
         }
       break;
       case 3:
-        if( data[1] != 12 && (data[2] == NOTE_ON)){
-          sendMIDI(data[2], data[0], notes[data[0]][0]+counter, 127);     //Send increasing array
+        if( payload.note != 12 && (payload.message == NOTE_ON || payload.message == NOTE_OFF)){
+          sendMIDI(payload.message, payload.channel, notes[payload.channel][0]+counter, 127);     //Send increasing array
           counter += 1;
         }
       break;
       case 4:
-        if(data[1] != 12){
-          sendMIDI(data[2], data[0], notes[data[0]][random(0, 11)], data[3]);     //Send random values while touching
+        if(payload.note != 12){
+          sendMIDI(payload.message, payload.channel, notes[payload.channel][random(0, 11)], payload.velocity);     //Send random values while touching
           counter += 1;
         }
       break;

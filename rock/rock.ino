@@ -94,30 +94,6 @@ void loop(void){
     sender();
   #else   //Receiver code
     mesh.DHCP();   
-    if(network.available()){
-      RF24NetworkHeader header;
-      network.peek(header);
-      network.read(header, &payload, sizeof(payload));
-      if (payload.channel == GOCHANNEL){
-        if ( notes[payload.channel][payload.note] == NOTE_GO && payload.message == NOTE_OFF){
-          sendMIDI(CC, HEAD, NOTE_GO, 127);
-          showcount += 1;
-          counter = 0;
-        #ifdef DEBUG
-          Serial.println("GO");
-        #endif          
-        }
-        if ( notes[payload.channel][payload.note] == NOTE_GO_BACK && payload.message == NOTE_OFF){
-          sendMIDI(CC, HEAD, NOTE_GO_BACK, 127);
-          showcount -= 1;
-          counter = 0;
-        #ifdef DEBUG
-          Serial.println("GO BACK");
-        #endif           
-        }
-      receiver();
-      }
-    }
 /************************************************/                                                    
 /*   SHOW Must go on !                          */                               
 /*   Aqui se meten todas las funciones que hagan*/ 
@@ -222,5 +198,61 @@ void loop(void){
 /************************************************/    
 /*                    THE END                   */
 /************************************************/
+    if(network.available()){
+      RF24NetworkHeader header;
+      network.peek(header);
+      network.read(header, &payload, sizeof(payload));
+      receiver();
+      if (payload.channel == GOCHANNEL){
+        if ( payload.note == ELEC_GO && payload.message == NOTE_OFF){
+          switch (MEMORIAS[showcount])
+            {
+              case 1:
+                sendMIDI(NOTE_ON, HEAD, notes[payload.channel-1][payload.note]+1, 127);        //Mainstage
+                sendMIDI(NOTE_OFF, HEAD, notes[payload.channel-1][payload.note]+1, 127);        //Mainstage
+              break;
+              case 2:
+                sendMIDI(NOTE_ON, HEAD, notes[payload.channel-1][payload.note], 127);    //Resolume
+                sendMIDI(NOTE_OFF, HEAD, notes[payload.channel-1][payload.note], 127);    //Resolume
+              break;
+              case 3:
+                sendMIDI(NOTE_ON, HEAD, notes[payload.channel-1][payload.note]+1, 127);        //Mainstage
+                sendMIDI(NOTE_OFF, HEAD, notes[payload.channel-1][payload.note]+1, 127);        //Mainstage
+                sendMIDI(NOTE_ON, HEAD, notes[payload.channel-1][payload.note], 127);    //Resolume
+                sendMIDI(NOTE_OFF, HEAD, notes[payload.channel-1][payload.note], 127);    //Resolume
+              break;
+            }
+          showcount += 1;
+          counter = 0;
+        #ifdef DEBUG
+          Serial.println("GO");
+        #endif          
+        }
+        if ( payload.note == ELEC_GO_BACK && payload.message == NOTE_OFF){
+          switch (MEMORIAS[showcount-1])
+            {
+              case 1:
+                sendMIDI(NOTE_ON, HEAD, notes[payload.channel-1][payload.note]+1, 127);        //Mainstage
+                sendMIDI(NOTE_OFF, HEAD, notes[payload.channel-1][payload.note]+1, 127);        //Mainstage
+              break;
+              case 2:
+                sendMIDI(NOTE_ON, HEAD, notes[payload.channel-1][payload.note], 127);    //Resolume
+                sendMIDI(NOTE_OFF, HEAD, notes[payload.channel-1][payload.note], 127);    //Resolume
+              break;
+              case 3:
+                sendMIDI(NOTE_ON, HEAD, notes[payload.channel-1][payload.note]+1, 127);        //Mainstage
+                sendMIDI(NOTE_OFF, HEAD, notes[payload.channel-1][payload.note]+1, 127);        //Mainstage
+                sendMIDI(NOTE_ON, HEAD, notes[payload.channel-1][payload.note], 127);    //Resolume
+                sendMIDI(NOTE_OFF, HEAD, notes[payload.channel-1][payload.note], 127);    //Resolume
+              break;
+            }
+          showcount -= 1;
+          counter = 0;
+        #ifdef DEBUG
+          Serial.println("GO BACK");
+        #endif           
+        }
+      }
+    }
   #endif
 }

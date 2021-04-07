@@ -5,28 +5,29 @@
     {
       case 0:
         if( payload.note != 12 && (payload.message == NOTE_ON || payload.message == NOTE_OFF)){
-          sendMIDI(payload.message, payload.channel, notes[payload.channel][payload.note], payload.velocity);     //Send notes when touched
+          sendMIDI(payload.message, payload.channel, notes[payload.channel-1][payload.note], payload.velocity); 
+//Send notes when touched
         }
       break;
       case 1:
         if( payload.note != 12){
-          sendMIDI(payload.message, payload.channel, notes[payload.channel][payload.note], payload.velocity);     //Send CC based on intensity
+          sendMIDI(payload.message, payload.channel, notes[payload.channel-1][payload.note], payload.velocity);     //Send CC based on intensity
         }
       break;
       case 2:
         if( payload.note == 12){
-          sendMIDI(payload.message, payload.channel, notes[payload.channel][0], payload.velocity);     //Send CC based on proximity to rock
+          sendMIDI(payload.message, payload.channel, notes[payload.channel-1][0], payload.velocity);     //Send CC based on proximity to rock
         }
       break;
       case 3:
         if( payload.note != 12 && (payload.message == NOTE_ON || payload.message == NOTE_OFF)){
-          sendMIDI(payload.message, payload.channel, notes[payload.channel][0]+counter, 127);     //Send increasing array
+          sendMIDI(payload.message, payload.channel, notes[payload.channel-1][0]+counter, 127);     //Send increasing array
           counter += 1;
         }
       break;
       case 4:
         if(payload.note != 12){
-          sendMIDI(payload.message, payload.channel, notes[payload.channel][random(0, 11)], payload.velocity);     //Send random values while touching
+          sendMIDI(payload.message, payload.channel, notes[payload.channel-1][random(0, 11)], payload.velocity);     //Send random values while touching
           counter += 1;
         }
       break;

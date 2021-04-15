@@ -20,9 +20,14 @@
         }
       break;
       case 3:
-        if( payload.note != 12 && (payload.message == NOTE_ON || payload.message == NOTE_OFF)){
-          sendMIDI(payload.message, payload.channel, notes[payload.channel-1][0]+counter, 127);     //Send increasing array
+        if( payload.note != 12 && (payload.message == NOTE_OFF)){
+          sendMIDI(NOTE_ON, payload.channel, notes[payload.channel-1][0]+counter, 127);     //Send increasing array
+          sendMIDI(NOTE_OFF, payload.channel, notes[payload.channel-1][0]+counter, 0);     //Send increasing array
           counter += 1;
+          if (counter == notes[payload.channel-1][1])
+          {
+            counter = 0;
+          }
         }
       break;
       case 4:

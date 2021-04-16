@@ -33,6 +33,7 @@ bool touching[SENSORS];
   uint8_t modes[9];
   uint8_t notes[ 9 ][ 12 ];
   uint8_t counter = 0;
+  bool asked = false;
 #endif
 
 void setup(void){     //call to all setup functions and start serial port
@@ -224,6 +225,7 @@ void loop(void){
             }
           showcount += 1;
           counter = 0;
+          asked = false;
         #ifdef DEBUG
           Serial.println("GO");
         #endif          
@@ -248,6 +250,7 @@ void loop(void){
             }
           showcount -= 1;
           counter = 0;
+          asked = false;
         #ifdef DEBUG
           Serial.println("GO BACK");
         #endif           

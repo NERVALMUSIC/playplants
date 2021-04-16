@@ -5,28 +5,36 @@
     {
       case 0:
         if( payload.note != 12 && (payload.message == NOTE_ON || payload.message == NOTE_OFF)){
-          sendMIDI(payload.message, payload.channel, notes[payload.channel-1][payload.note], payload.velocity); 
-//Send notes when touched
+          sendMIDI(payload.message, payload.channel, notes[payload.channel-1][payload.note], payload.velocity);   //Send notes when touched
         }
       break;
       case 1:
         if( payload.note != 12){
-          sendMIDI(payload.message, payload.channel, notes[payload.channel-1][payload.note], payload.velocity);     //Send CC based on intensity
+          sendMIDI(payload.message, payload.channel, notes[payload.channel-1][payload.note], payload.velocity);   //Send CC based on intensity
         }
       break;
       case 2:
         if( payload.note == 12){
-          sendMIDI(payload.message, payload.channel, notes[payload.channel-1][0], payload.velocity);     //Send CC based on proximity to rock
+          sendMIDI(payload.message, payload.channel, notes[payload.channel-1][0], payload.velocity);              //Send CC based on proximity to rock
         }
       break;
       case 3:
-        if( payload.note != 12 && (payload.message == NOTE_OFF)){
-          sendMIDI(NOTE_ON, payload.channel, notes[payload.channel-1][0]+counter, 127);     //Send increasing array
-          sendMIDI(NOTE_OFF, payload.channel, notes[payload.channel-1][0]+counter, 0);     //Send increasing array
-          counter += 1;
-          if (counter == notes[payload.channel-1][1])
+        if( payload.note != 12 && (payload.message == NOTE_OFF)){   
+          if (notes[payload.channel-1][1] == 2)
           {
-            counter = 0;
+            if (asked == true){
+              sendMIDI(NOTE_ON, payload.channel, notes[payload.channel-1][0]+counter, 127);                         //Respond
+              sendMIDI(NOTE_OFF, payload.channel, notes[payload.channel-1][0]+counter, 0);  
+              counter += 1;
+              asked = false;
+            }
+          }
+          else{
+            if (asked == false){
+              sendMIDI(NOTE_ON, payload.channel, notes[payload.channel-1][0]+counter, 127);                         //Ask
+              sendMIDI(NOTE_OFF, payload.channel, notes[payload.channel-1][0]+counter, 0);
+              asked = true;
+            }
           }
         }
       break;

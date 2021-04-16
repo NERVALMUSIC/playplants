@@ -7,12 +7,13 @@
 
 //Sensor Stuff
 #ifndef CONTROL
-  #define HEAD 10			  // <-- Hardcode value between 1 and 9
+  #define HEAD 8			  // <-- Hardcode value between 1 and 9
   #define TOUCH 12
   #define RELEASE 4
   mpr121_proxmode_type  prox_mode = PROX_DISABLED; //PROX_DISABLED PROX_0_1 PROX_0_3 PROX_0_11 (no proximidad, 2 sensores, 4 sensores, 12 sensores)
 #else
   #define HEAD 10  // <-- Midi channel for control keypad
+  #define CCNOTE 25
   #define GOCHANNEL 5            //<-- Channel used for MODE change
   #define ELEC_GO 10             //<-- Electrode used for MODE increase
   #define ELEC_GO_BACK 11        //<-- Electrode used for MODE decrease
@@ -35,18 +36,16 @@
   */
 
   
-  const uint8_t NOTES1[ 9 ][ 12 ] = { {48, 52, 55, 59, 60, 48, 52, 55, 59, 60, 48, 60}, // Canal 1
-                                      {48, 52, 55, 59, 60, 48, 52, 55, 59, 60, 48, 60}, // Canal 2
+  const uint8_t NOTES1[ 9 ][ 12 ] = { {60, 1, 55, 59, 60, 48, 52, 55, 59, 60, 48, 60}, // Canal 1 <-- Dialogo 1
+                                      {60, 2, 55, 59, 60, 48, 52, 55, 59, 60, 48, 60}, // Canal 2 <-- Dialogo 2
                                       {36, 40, 43, 47, 84, 72, 76, 79, 83, 84, 72, 84}, // Canal 3
                                       {60, 64, 67, 71, 43, 45, 47, 48, 36, 38, 40, 41}, // Canal 4
-                                      {36, 38, 40, 41, 43, 45, 47, 48, 36, 38, 13, 15},     // Canal 5 < -- Control Electrodos 10 y 11
+                                      {36, 38, 40, 41, 43, 45, 47, 48, 36, 38, 13, 15}, // Canal 5 < -- Control Electrodos 10 y 11
                                       {60, 64, 67, 71, 72, 60, 64, 67, 71, 72, 60, 72}, // Canal 6
                                       {60, 64, 67, 71, 72, 60, 64, 67, 71, 72, 60, 72}, // Canal 7
                                       {60, 64, 67, 71, 72, 60, 64, 67, 71, 72, 60, 72}, // Canal 8
                                       {60, 64, 67, 71, 72, 60, 64, 67, 71, 72, 60, 72}};// Canal 9
-  const uint8_t MODES1[9] = {0, 0, 0, 0, 0, 0, 0, 0, 0};      //<-- Electrodes used for mode control (5 modes) // 0 is note on-off, 1 is notes with Control Change, 2 is proximity, 3 is counter, 4 is random
-  
-  
+  const uint8_t MODES1[9] = {3, 3, 1, 1, 1, 1, 1, 0, 0};      //<-- Electrodes used for mode control (5 modes) // 0 is note on-off, 1 is notes with Control Change, 2 is proximity, 3 is counter, 4 is random
   const uint8_t NOTES2[ 9 ][ 12 ] = { {60, 64, 67, 71, 72, 60, 64, 67, 71, 72, 60, 72}, // Canal 1
                                       {48, 52, 55, 59, 60, 48, 52, 55, 59, 60, 48, 60}, // Canal 2
                                       {72, 76, 79, 83, 84, 72, 76, 79, 83, 84, 72, 84}, // Canal 3

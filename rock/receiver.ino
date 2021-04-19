@@ -9,11 +9,11 @@
         }
       break;
       case 1:
-        if( payload.note != 12 && (payload.message == NOTE_ON || payload.message == NOTE_OFF)){
+        if( payload.note > 0 && payload.note < 12 && (payload.message == NOTE_ON || payload.message == NOTE_OFF)){
           sendMIDI(payload.message, payload.channel, notes[payload.channel-1][payload.note], payload.velocity);   //Send notes when touched
         }
-        if( payload.note != 12 && payload.message == CC){
-          sendMIDI(payload.message, payload.channel, notes[payload.channel-1][CCNOTE], payload.velocity);   //Send CC based on intensity
+        if( payload.note == 0 && payload.message == CC){
+          sendMIDI(payload.message, payload.channel, CCNOTE, payload.velocity);   //Send CC based on intensity
         }
       break;
       case 2:
@@ -22,7 +22,7 @@
         }
       break;
       case 3:
-        if( payload.note != 12 && (payload.message == NOTE_OFF)){   
+        if( payload.note != 12 && (payload.message == NOTE_ON)){   
           if (notes[payload.channel-1][1] == 2)
           {
             if (asked == true){

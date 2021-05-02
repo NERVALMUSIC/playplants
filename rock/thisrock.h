@@ -7,8 +7,8 @@
 
 //Sensor Stuff
 #ifndef CONTROL
-  #define HEAD 8			  // <-- Hardcode value between 1 and 9
-  #define TOUCH 12
+  #define HEAD 1			  // <-- Hardcode value between 1 and 9 
+  #define TOUCH 8
   #define RELEASE 4
   mpr121_proxmode_type  prox_mode = PROX_DISABLED; //PROX_DISABLED PROX_0_1 PROX_0_3 PROX_0_11 (no proximidad, 2 sensores, 4 sensores, 12 sensores)
 #else
@@ -36,16 +36,16 @@
   */
 
   
-  const uint8_t NOTES1[ 9 ][ 12 ] = { {60, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},            // Canal 1 <-- Dialogo 1
-                                      {60, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},            // Canal 2 <-- Dialogo 2
-                                      {36, 40, 43, 47, 84, 72, 76, 79, 83, 84, 72, 84}, // Canal 3
+  const uint8_t NOTES1[ 9 ][ 12 ] = { {60, 64, 67, 71, 43, 45, 47, 48, 36, 38, 40, 41},            // Canal 1 
+                                      {60, 61, 62, 63, 64, 72, 76, 79, 83, 84, 72, 84},            // Canal 2 
+                                      {60, 61, 62, 63, 64, 72, 76, 79, 83, 84, 72, 84}, // Canal 3
                                       {60, 64, 67, 71, 43, 45, 47, 48, 36, 38, 40, 41}, // Canal 4
-                                      {0, 38, 40, 41, 43, 45, 47, 48, 36, 38, 13, 15}, // Canal 5 < -- Mainstage 13 y 14 Resolume 15 y 16
+                                       {35, 35, 35, 41, 43, 45, 47, 48, 36, 38, 13, 15}, // Canal 5 < -- Mainstage 13 y 14 Resolume 15 y 16
                                       {60, 64, 67, 71, 72, 60, 64, 67, 71, 72, 60, 72}, // Canal 6
                                       {60, 64, 67, 71, 72, 60, 64, 67, 71, 72, 60, 72}, // Canal 7
                                       {60, 64, 67, 71, 72, 60, 64, 67, 71, 72, 60, 72}, // Canal 8
                                       {60, 64, 67, 71, 72, 60, 64, 67, 71, 72, 60, 72}};// Canal 9
-  const uint8_t MODES1[9] = {3, 3, 1, 1, 1, 1, 1, 0, 0};      //<-- Electrodes used for mode control (5 modes) // 0 is note on-off, 1 is notes with Control Change, 2 is proximity, 3 is counter, 4 is random
+  const uint8_t MODES1[9] = {0, 0, 0, 0, 0, 0, 1, 0, 0};      //<-- Electrodes used for mode control (5 modes) // 0 is note on-off, 1 is notes with Control Change, 2 is proximity, 3 is counter, 4 is random
   const uint8_t NOTES2[ 9 ][ 12 ] = { {60, 64, 67, 71, 72, 60, 64, 67, 71, 72, 60, 72}, // Canal 1
                                       {48, 52, 55, 59, 60, 48, 52, 55, 59, 60, 48, 60}, // Canal 2
                                       {72, 76, 79, 83, 84, 72, 76, 79, 83, 84, 72, 84}, // Canal 3
@@ -55,9 +55,9 @@
                                       {60, 64, 67, 71, 72, 60, 64, 67, 71, 72, 60, 72}, // Canal 7
                                       {60, 64, 67, 71, 72, 60, 64, 67, 71, 72, 60, 72}, // Canal 8
                                       {60, 64, 67, 71, 72, 60, 64, 67, 71, 72, 60, 72}};// Canal 9
-  const uint8_t MODES2[9] = {0, 0, 0, 0, 0, 0, 0, 0, 0};      //<-- Electrodes used for mode control (5 modes) // 0 is note on-off, 1 is notes with Control Change, 2 is proximity, 3 is counter, 4 is random
-  const uint8_t NOTES3[ 9 ][ 12 ] = { {60, 64, 67, 71, 72, 60, 64, 67, 71, 72, 60, 72}, // Canal 1
-                                      {48, 52, 55, 59, 60, 48, 52, 55, 59, 60, 48, 60}, // Canal 2
+  const uint8_t MODES2[9] = {3, 3, 0, 0, 0, 0, 0, 0, 0};      //<-- Electrodes used for mode control (5 modes) // 0 is note on-off, 1 is notes with Control Change, 2 is proximity, 3 is counter, 4 is random
+  const uint8_t NOTES3[ 9 ][ 12 ] = { {60, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},            // Canal 1 <-- Dialogo 1
+                                      {60, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},            // Canal 2 <-- Dialogo 2
                                       {72, 76, 79, 83, 84, 72, 76, 79, 83, 84, 72, 84}, // Canal 3
                                       {36, 38, 40, 41, 43, 45, 47, 48, 36, 38, 40, 41}, // Canal 4
                                       {36, 38, 40, 41, 43, 45, 47, 48, 36, 38, 13, 15},     // Canal 5 < -- Control
@@ -65,7 +65,7 @@
                                       {60, 64, 67, 71, 72, 60, 64, 67, 71, 72, 60, 72}, // Canal 7
                                       {60, 64, 67, 71, 72, 60, 64, 67, 71, 72, 60, 72}, // Canal 8
                                       {60, 64, 67, 71, 72, 60, 64, 67, 71, 72, 60, 72}};// Canal 9
-  const uint8_t MODES3[9] = {0, 0, 0, 0, 0, 0, 0, 0, 0};      //<-- Electrodes used for mode control (5 modes) // 0 is note on-off, 1 is notes with Control Change, 2 is proximity, 3 is counter, 4 is random
+  const uint8_t MODES3[9] = {3, 3, 0, 0, 0, 0, 0, 0, 0};      //<-- Electrodes used for mode control (5 modes) // 0 is note on-off, 1 is notes with Control Change, 2 is proximity, 3 is counter, 4 is random
   const uint8_t NOTES4[ 9 ][ 12 ] = { {60, 64, 67, 71, 72, 60, 64, 67, 71, 72, 60, 72}, // Canal 1
                                       {48, 52, 55, 59, 60, 48, 52, 55, 59, 60, 48, 60}, // Canal 2
                                       {72, 76, 79, 83, 84, 72, 76, 79, 83, 84, 72, 84}, // Canal 3
@@ -256,6 +256,7 @@ const uint8_t PITCH_BEND = 0xE0;        //<-- Used Midi message types
 #define SENSORS 13 // number of sensors + proximity
 #define MINPROX -25
 #define MAXPROX 6
+#define SATVAL -100
 
 //Radio stuff
 //const uint64_t PIPES[4] {0xF0F0F0F0D2LL,  0xF0F0F0F0C3LL, 0xF0F0F0F0B4LL, 0xF0F0F0F0A5LL};

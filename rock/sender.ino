@@ -7,6 +7,7 @@
       int16_t diff = MPR121.getFilteredData(n)-MPR121.getBaselineData(n);
       raw[n] = diff;
       if( diff > maxdiff[n]){maxdiff[n] = diff;}
+      if(diff < SATVAL){ diff = SATVAL;}
       else if( diff < mindiff[n]){mindiff[n] = diff;}
       payload.channel = HEAD;
       payload.note = n;

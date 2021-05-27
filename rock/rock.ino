@@ -180,10 +180,10 @@ void loop(void){
         memcpy(modes, MODES19, sizeof(MODES19));
         memcpy(notes, NOTES19, sizeof(NOTES19));
       break;
-      case 19:
-        memcpy(modes, MODES20, sizeof(MODES20));
-        memcpy(notes, NOTES20, sizeof(NOTES20));
-      break;
+     // case 19:
+       // memcpy(modes, MODES20, sizeof(MODES20));
+       // memcpy(notes, NOTES20, sizeof(NOTES20));
+     // break;
 /************************************************/   
 //      case #:
 //        memcpy(modes, MODES#, sizeof(MODES#));
@@ -210,15 +210,15 @@ void loop(void){
             {
               case 1:
                 sendMIDI(NOTE_ON, HEAD, notes[payload.channel-1][payload.note]+1, 127);        //Mainstage
-                sendMIDI(NOTE_OFF, HEAD, notes[payload.channel-1][payload.note]+1, 127);        //Mainstage
+               sendMIDI(NOTE_OFF, HEAD, notes[payload.channel-1][payload.note]+1, 127);        //Mainstage
               break;
               case 2:
                 sendMIDI(NOTE_ON, HEAD, notes[payload.channel-1][payload.note], 127);    //Resolume
-                sendMIDI(NOTE_OFF, HEAD, notes[payload.channel-1][payload.note], 127);    //Resolume
+               sendMIDI(NOTE_OFF, HEAD, notes[payload.channel-1][payload.note], 127);    //Resolume
               break;
               case 3:
                 sendMIDI(NOTE_ON, HEAD, notes[payload.channel-1][payload.note]+1, 127);        //Mainstage
-                sendMIDI(NOTE_OFF, HEAD, notes[payload.channel-1][payload.note]+1, 127);        //Mainstage
+               sendMIDI(NOTE_OFF, HEAD, notes[payload.channel-1][payload.note]+1, 127);        //Mainstage
                 sendMIDI(NOTE_ON, HEAD, notes[payload.channel-1][payload.note], 127);    //Resolume
                 sendMIDI(NOTE_OFF, HEAD, notes[payload.channel-1][payload.note], 127);    //Resolume
               break;
@@ -243,9 +243,9 @@ void loop(void){
               break;
               case 3:
                 sendMIDI(NOTE_ON, HEAD, notes[payload.channel-1][payload.note]+1, 127);        //Mainstage
-                sendMIDI(NOTE_OFF, HEAD, notes[payload.channel-1][payload.note]+1, 127);        //Mainstage
+               sendMIDI(NOTE_OFF, HEAD, notes[payload.channel-1][payload.note]+1, 127);        //Mainstage
                 sendMIDI(NOTE_ON, HEAD, notes[payload.channel-1][payload.note], 127);    //Resolume
-                sendMIDI(NOTE_OFF, HEAD, notes[payload.channel-1][payload.note], 127);    //Resolume
+             sendMIDI(NOTE_OFF, HEAD, notes[payload.channel-1][payload.note], 127);    //Resolume
               break;
             }
           showcount -= 1;

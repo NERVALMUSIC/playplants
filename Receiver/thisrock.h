@@ -1,6 +1,6 @@
 //Touch this
 //
-//#define DEBUG //Uncomment for debug
+#define DEBUG //Uncomment for debug
 
 //Sensor Stuff
 #define HEAD 10  // <-- Midi channel for control keypad

@@ -20,17 +20,18 @@ struct MIDI_payload {
 MIDI_payload payload;
 
 //Sensor instance and variables
-int16_t raw[SENSORS];
-int16_t maxdiff[SENSORS];
-int16_t mindiff[SENSORS];
-int16_t filteredCC[SENSORS];
-uint8_t windowCount[SENSORS];
+int16_t raw[SENSORS+1];
+int16_t filteredCC[SENSORS+1];
+uint8_t windowCount[SENSORS+1];
 bool touching[SENSORS];
+bool touched[SENSORS];
+unsigned long lastDebounceTime[SENSORS];  // the last time the output pin was toggled
+unsigned long debounceDelay = 50;    // the debounce time; increase if the output flickers
+
 
 //Midi instance
 
 void setup(void){     //call to all setup functions and start serial port
-  randomSeed(analogRead(0));
   Serial.begin(115200);
   mesh.setNodeID(HEAD);
   MPR121.begin(I2CADDR);
@@ -48,20 +49,18 @@ void MPRconfig(){
    * AN3890: https://www.nxp.com/docs/en/application-note/AN3890.pdf
    */
     MPR121.goFast();      //I2C speed
+    MPR121.setNumEnabledElectrodes(SENSORS);
     MPR121.setTouchThreshold(TOUCH);      //Set Thresholds
     MPR121.setReleaseThreshold(RELEASE);  //Set Thresholds
     MPR121.setProxMode(prox_mode);  //PROX_DISABLED PROX_0_1 PROX_0_3 PROX_0_11
-    //MPR121.setCalibrationLock(CAL_LOCK_DISABLED); //CAL_LOCK_ENABLED CAL_LOCK_DISABLED CAL_LOCK_ENABLED_5_BIT_COPY CAL_LOCK_ENABLED_10_BIT_COPY
   /*
   * Optional settings, test best configuration for each plant,
   * see datasheet and application notes to better understand how
   * to change these settings.
   */
-    delay(200);
-    MPR121.autoSetElectrodes(false);  // autoset all electrode settings
-    //MPR121.autoSetElectrodeCDC();
-    delay(200);
-    //MPR121.setGlobalCDC(1);
+    delay(10);
+    MPR121.autoSetElectrodes(false);  // autoset all electrode settings with fixed charge time disabled
+    delay(1000);
 }
 
 
@@ -77,57 +76,40 @@ void loop(void){
 MPR121.updateAll();
     //delay(10);
     for(uint8_t n=0; n<SENSORS; n++){
-      
-      int16_t diff = MPR121.getFilteredData(n)-MPR121.getBaselineData(n);
-      raw[n] = diff;
-      if( diff > maxdiff[n]){maxdiff[n] = diff;}
-      if(diff < SATVAL){ diff = SATVAL;}
-      else if( diff < mindiff[n]){mindiff[n] = diff;}
+      bool touch = MPR121.getTouchData(n);
+      int16_t diff = MPR121.getBaselineData(n) - MPR121.getFilteredData(n) ;
       payload.channel = HEAD;
       payload.note = n;
-      payload.message = CC;
-      payload.velocity = uint8_t(map(diff,maxdiff[n],mindiff[n],0,127));
+      if (twotouch()){raw[n] = constrain(diff * TOUCHMULT,MIN,MAX);}
+      else{raw[n] = constrain(diff,MIN,MAX);}
+      payload.velocity = uint8_t(map(raw[n],MIN,MAX,0,127));
       
-      if (n == 12){payload.velocity = uint8_t(map(diff,MAXPROX,MINPROX,0,127));}
-
-      if (MPR121.isNewTouch(n) && n != 12 ) {     //check if there is a new touch on the electrode
-        payload.message = NOTE_ON;
-        sendRadio();
-        debug();
-        touching[n] = true;
-      }
-      
-      else if (MPR121.isNewRelease(n) && n != 12 ) {   //check if the touch has just been lifted
-        payload.message = NOTE_OFF;
-        sendRadio();
-        debug();
-        touching[n] = false;
-      }
-      
-      if (n == 12 ){
-        if(payload.velocity >=25){
-          if(windowCount[n] == WINDOW){
-            payload.velocity = filteredCC[n] / WINDOW;
-            windowCount[n] = 0;
-            filteredCC[n] = 0; 
-            sendRadio();
-            debug();
+      if (touch != touched[n]) {
+        // reset the debouncing timer
+        lastDebounceTime[n] = millis();
+      }      
+      if ((millis() - lastDebounceTime[n]) > debounceDelay) {
+        if (touch != touching[n]) {
+          touching[n] = touch;
+          // only toggle the LED if the new button state is HIGH
+          if (touching[n] == true) {
+          payload.message = NOTE_ON;
           }
           else{
-            filteredCC[n] = filteredCC[n] + uint8_t(payload.velocity);
-            windowCount[n] += 1;
+          payload.message = NOTE_OFF;
           }
+          //sendRadio();
+          debug();
         }
-        touching[n] = false;
       }
-      
+      touched[n] = touch;    
       if(touching[n] == true){
         if(windowCount[n] == WINDOW){
+          payload.message = CC;
           payload.velocity = filteredCC[n] / WINDOW;
           windowCount[n] = 0;
-          filteredCC[n] = 0; 
-          sendRadio();
-          debug();
+          filteredCC[n] = 0;
+          //sendRadio();
         }
         else{
           filteredCC[n] = filteredCC[n] + uint8_t(payload.velocity);
@@ -135,6 +117,27 @@ MPR121.updateAll();
         }
       }
     } // end of electrode for loop
+    if (prox_mode != PROX_DISABLED ){
+      int16_t diff = MPR121.getBaselineData(12) - MPR121.getFilteredData(12) ;
+      if (twotouch()){raw[SENSORS+1] = constrain(diff * TOUCHMULT,MIN,MAX);}
+      else{raw[SENSORS+1] = constrain(diff,MIN,MAX);}
+      payload.velocity = uint8_t(map(raw[SENSORS+1],MIN,MAX,0,127));
+      if(diff >= PROXMIN){
+        if(windowCount[SENSORS+1] == WINDOW){
+          payload.channel = HEAD;
+          payload.message = CC;
+          payload.velocity = filteredCC[SENSORS+1] / WINDOW;
+          windowCount[SENSORS+1] = 0;
+          filteredCC[SENSORS+1] = 0; 
+          sendRadio();
+          
+          }
+          else{
+            filteredCC[SENSORS+1] = filteredCC[SENSORS+1] + uint8_t(diff);
+            windowCount[SENSORS+1] += 1;
+          }
+        }
+      }
 }
 
 void sendRadio(){
@@ -144,10 +147,25 @@ void sendRadio(){
       //refresh the network address
       Serial.println("Renewing Address");
       mesh.renewAddress();
-    } else {
+    } 
+    else {
       Serial.println("Send fail, Test OK");
     }
-  } else {
-    Serial.print("Send OK: ");
+  } 
+  else {
+    debug();
   }
+}
+
+bool twotouch(){
+  uint8_t numtouch = 0;
+  for (uint8_t i = 0; i < SENSORS; i++){
+    if (true == touching[i]){
+      numtouch += 1;
+      if (numtouch > 1){
+        return true;
+      }
+    }
+  }
+  return false;
 }

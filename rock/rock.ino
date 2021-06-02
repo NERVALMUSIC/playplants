@@ -30,8 +30,8 @@ bool touching[SENSORS];
 //Midi instance
 #ifdef CONTROL
   uint8_t showcount = 0;      //variable to control show modes
-  uint8_t modes[9];
-  uint8_t notes[ 9 ][ 12 ];
+  uint8_t modes[6];
+  uint8_t notes[ 6 ][ 6 ];
   uint8_t counter = 0;
   bool asked = false;
 #endif
@@ -73,7 +73,7 @@ void MPRconfig(){
   * to change these settings.
   */
     delay(200);
-    MPR121.autoSetElectrodes(false);  // autoset all electrode settings
+    //MPR121.autoSetElectrodes(false);  // autoset all electrode settings
     //MPR121.autoSetElectrodeCDC();
     delay(200);
     //MPR121.setGlobalCDC(1);

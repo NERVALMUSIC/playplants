@@ -12,11 +12,13 @@
   #define RELEASE 16
   mpr121_proxmode_type  prox_mode = PROX_DISABLED; //PROX_DISABLED PROX_0_1 PROX_0_3 PROX_0_11 (no proximidad, 2 sensores, 4 sensores, 12 sensores)
 #else
-  #define HEAD 10  // <-- Midi channel for control keypad
+  #define HEAD 10                 // <-- Midi channel for control keypad
   #define CCNOTE 25
-  #define GOCHANNEL 1            //<-- Channel used for MODE change
-  #define ELEC_GO 0             //<-- Electrode used for MODE increase
-  #define ELEC_GO_BACK 1        //<-- Electrode used for MODE decrease
+  #define SUSTAIN 64
+  #define GOCHANNEL 1            //<-- Channel used for MEMRORY change
+  #define ELEC_GO 0             //<-- Electrode used for MEMORY increase
+  #define ELEC_GO_BACK 1        //<-- Electrode used for MEMORY decrease
+  #define SUSTAIN_CHANGE 2        //<-- Electrode used for SUSTAIN change
   /*ARRAY de memorias:
    0 = No cambia nada
    1 = Cambia MainStage

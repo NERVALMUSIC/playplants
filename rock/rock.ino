@@ -30,6 +30,7 @@ bool touching[SENSORS];
 //Midi instance
 #ifdef CONTROL
   uint8_t showcount = 0;      //variable to control show modes
+  bool sustain_mode = false; //variable to control sustain mode
   uint8_t modes[6];
   uint8_t notes[ 6 ][ 6 ];
   uint8_t counter = 0;
@@ -254,6 +255,15 @@ void loop(void){
         #ifdef DEBUG
           Serial.println("GO BACK");
         #endif           
+        }
+        if ( payload.note == SUSTAIN_CHANGE && payload.message == NOTE_OFF){
+          for (uint8_t n=2; n<7; n++){
+            sendMIDI(CC, n, SUSTAIN, sustain_mode);        //Change sustain mode
+          }
+          sustain_mode != !sustain_mode;
+        #ifdef DEBUG
+          Serial.println("GO");
+        #endif          
         }
       }
     }

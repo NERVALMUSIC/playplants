@@ -2,14 +2,14 @@
 //
 
 //Defines
-#define CONTROL true	// <-- Comentar para emisor
+ //#define CONTROL true	// <-- Comentar para emisor
 //#define DEBUG //Uncomment for debug
 
 //Sensor Stuff
 #ifndef CONTROL
-  #define HEAD 1			  // <-- Hardcode value between 1 and 9 
-  #define TOUCH 25
-  #define RELEASE 15
+  #define HEAD 2		  // <-- Hardcode value between 1 and 9 
+  #define TOUCH 17
+  #define RELEASE 16
   mpr121_proxmode_type  prox_mode = PROX_DISABLED; //PROX_DISABLED PROX_0_1 PROX_0_3 PROX_0_11 (no proximidad, 2 sensores, 4 sensores, 12 sensores)
 #else
   #define HEAD 10  // <-- Midi channel for control keypad
@@ -23,11 +23,11 @@
    2 = Cambia Resolume
    3 = Cambia todo
    */
-   const uint8_t MEMORIAS[20] = {2, 3, 3, 3, 2, 2, 3, 3, 3, 2, 3, 3, 2, 3, 3, 3, 2, 2, 2, 2}; 
+   const uint8_t MEMORIAS[20] = {3, 3, 3, 3, 3, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2}; 
   /*ARRAYS para MODOS Y NOTAS
   NOTE son las arrays para cada planta y modo
   Los MODES son:
-  0 = Send notes basic.
+  0 = Send notes basic.   
   1 = Send notes with control change while touching.
   2 = Send proximity value of first note of its array.
   3 = COUNT UP from first note of its array, ecah touch next note. Fixed intensity
@@ -35,63 +35,67 @@
   5 = Do nothing
   */
 
-  /*INICIO TARDIGRADO + ENEKO TEXTO FRÁGILES - Entrada */
+  /*INICIO TELEGRAFO SEVILLA */
   const uint8_t NOTES1[ 6 ][ 6 ] = {  {60, 64, 0, 0, 0, 0},     // Canal 1   < -- Mainstage 61 y 65 Resolume 60 y 64 
                                       {72, 76, 69, 65, 62, 57}, // Canal 2 
                                       {72, 76, 69, 65, 62, 57}, // Canal 3
-                                      {72, 76, 69, 65, 62, 57}, // Canal 4
+                                      {72, 76, 69, 74 , 77, 57},// Canal 4
                                       {72, 76, 69, 65, 62, 57}, // Canal 5
                                       {60, 61, 62, 63, 64, 65}};// Canal 6
   const uint8_t MODES1[6] = {0, 0, 0, 0, 0, 0};      //<-- Electrodes used for mode control (5 modes) // 0 is note on-off, 1 is notes with Control Change, 2 is proximity, 3 is counter, 4 is random
-  /*ENEKO TEXTO FRÄGILES + ME GUSTARIA MORIRME - José */
-  const uint8_t NOTES2[ 6 ][ 6 ] = {  {60, 64, 0, 0, 0, 0},     // Canal 1   < -- Mainstage 61 y 65 Resolume 60 y 64 
+  
+  /*PIEDRA SEVILLA */
+  const uint8_t NOTES2[ 6 ][ 6 ] = { {60, 64, 0, 0, 0, 0},     // Canal 1   < -- Mainstage 61 y 65 Resolume 60 y 64 
                                       {72, 76, 69, 65, 62, 57}, // Canal 2 
                                       {72, 76, 69, 65, 62, 57}, // Canal 3
-                                      {72, 76, 69, 65, 62, 57}, // Canal 4
+                                      {72, 76, 69, 74 , 77, 57},// Canal 4
                                       {72, 76, 69, 65, 62, 57}, // Canal 5
-                                      {72, 76, 69, 65, 62, 57}};// Canal 6
+                                      {60, 61, 62, 63, 64, 65}};// Canal 6
   const uint8_t MODES2[6] = {0, 0, 0, 0, 0, 0};      //<-- Electrodes used for mode control (5 modes) // 0 is note on-off, 1 is notes with Control Change, 2 is proximity, 3 is counter, 4 is random
-  /*PRESENTACION PLANTAS - Presentación */
+  /*RIO BUENO  SEVILLA */
   const uint8_t NOTES3[ 6 ][ 6 ] = {  {60, 64, 0, 0, 0, 0},     // Canal 1   < -- Mainstage 61 y 65 Resolume 60 y 64 
-                                      {72, 76, 69, 65, 62, 57}, // Canal 2 
+                                      {53, 58, 50, 48, 65, 70}, // Canal 2 
                                       {72, 76, 69, 65, 62, 57}, // Canal 3
-                                      {72, 76, 69, 65, 62, 57}, // Canal 4
+                                      {53, 58, 50, 48, 65, 70}, // Canal 4 SEVILLA MONSTERA
                                       {72, 76, 69, 65, 62, 57}, // Canal 5
-                                      {72, 76, 69, 65, 62, 57}};// Canal 6
+                                      {41, 77, 46, 48, 53, 82}};// Canal 6 SEVILLA ARBOLITO 
   const uint8_t MODES3[6] = {0, 0, 0, 0, 0, 0};      //<-- Electrodes used for mode control (5 modes) // 0 is note on-off, 1 is notes with Control Change, 2 is proximity, 3 is counter, 4 is random
-  /*CANCION NATURAL - Natural */
+  /*TECHNO + MANZANO SEVILLA*/
   const uint8_t NOTES4[ 6 ][ 6 ] = {  {60, 64, 0, 0, 0, 0},     // Canal 1   < -- Mainstage 61 y 65 Resolume 60 y 64 
                                       {58, 57, 62, 63, 60, 48}, // Canal 2 
                                       {58, 57, 62, 63, 60, 48}, // Canal 3
-                                      {58, 57, 62, 63, 60, 48}, // Canal 4
-                                      {58, 57, 62, 63, 60, 48}, // Canal 5
-                                      {58, 57, 62, 63, 60, 48}};// Canal 6
+                                      {41, 53, 65, 46, 51, 60}, // Canal 4 -- TECHNO SEVILLA
+                                      {58, 57, 62, 63, 60, 48}, // Canal 5 -- MANZANO
+                                      {36, 53, 65, 48, 36, 36}};// Canal 6
   const uint8_t MODES4[6] = {0, 0, 0, 0, 0, 0};      //<-- Electrodes used for mode control (5 modes) // 0 is note on-off, 1 is notes with Control Change, 2 is proximity, 3 is counter, 4 is random
-  /*VIDEO SEÑOR VIVERO - Vivero */
-  const uint8_t NOTES5[ 6 ][ 6 ] = {  {60, 64, 0, 0, 0, 0},     // Canal 1   < -- Mainstage 61 y 65 Resolume 60 y 64 
-                                      {48, 52, 55, 59, 60, 48}, // Canal 2 
-                                      {53, 53, 53, 53, 53, 53}, // Canal 3
-                                      {36, 38, 40, 41, 43, 45}, // Canal 4
-                                      {36, 38, 40, 41, 43, 45}, // Canal 5
-                                      {60, 64, 67, 71, 72, 60}};// Canal 6
+  
+  /*VIDEO SEÑOR VIVERO + SOMOS AGUA SEVILLA */
+  const uint8_t NOTES5[ 6 ][ 6 ] = { {60, 64, 0, 0, 0, 0},     // Canal 1   < -- Mainstage 61 y 65 Resolume 60 y 64 
+                                      {35, 35, 35, 41, 43, 45}, // Canal 2 
+                                      {35, 35, 35, 41, 43, 45}, // Canal 3
+                                      {43, 55, 59, 57,60, 48},  // Canal 4
+                                      {43, 47, 48, 45, 64, 65}, // Canal 5
+                                      {60, 61, 62, 63, 64, 65}};// Canal 6
   const uint8_t MODES5[6] = {0, 0, 0, 0, 0, 0};      //<-- Electrodes used for mode control (5 modes) // 0 is note on-off, 1 is notes with Control Change, 2 is proximity, 3 is counter, 4 is random
-  /*ASPIRADORA/AZAFATAS/ENEKO AL VACIO - Aspiradora */
+
+  
+  /*VIDEO SEÑOR VIVERO + SOMOS AGUA SEVILLA */
   const uint8_t NOTES6[ 6 ][ 6 ] = {  {60, 64, 0, 0, 0, 0},     // Canal 1   < -- Mainstage 61 y 65 Resolume 60 y 64 
-                                      {48, 52, 55, 59, 60, 48}, // Canal 2 
-                                      {53, 53, 53, 53, 53, 53}, // Canal 3
-                                      {36, 38, 40, 41, 43, 45}, // Canal 4
-                                      {36, 38, 40, 41, 43, 45}, // Canal 5
-                                      {60, 64, 67, 71, 72, 60}};// Canal 6
+                                      {35, 35, 35, 41, 43, 45}, // Canal 2 
+                                      {35, 35, 35, 41, 43, 45}, // Canal 3
+                                      {43, 55, 59, 57,60, 48},  // Canal 4
+                                      {43, 43, 43, 43, 64, 65}, // Canal 5
+                                      {60, 61, 62, 63, 64, 65}};// Canal 6
   const uint8_t MODES6[6] = {0, 0, 0, 0, 0, 0};      //<-- Electrodes used for mode control (5 modes) // 0 is note on-off, 1 is notes with Control Change, 2 is proximity, 3 is counter, 4 is random
-  /*CONVERSACION PLANTAS - Conversación */
-  const uint8_t NOTES7[ 6 ][ 6 ] = {  {60, 64, 0, 0, 0, 0},     // Canal 1   < -- Mainstage 61 y 65 Resolume 60 y 64 
-                                      {48, 52, 55, 59, 60, 48}, // Canal 2 
-                                      {53, 53, 53, 53, 53, 53}, // Canal 3
-                                      {36, 38, 40, 41, 43, 45}, // Canal 4
-                                      {60, 1, 40, 41, 43, 45}, // Canal 5
-                                      {60, 2, 67, 71, 72, 60}};// Canal 6
-  const uint8_t MODES7[6] = {0, 0, 0, 0, 3, 3};      //<-- Electrodes used for mode control (5 modes) // 0 is note on-off, 1 is notes with Control Change, 2 is proximity, 3 is counter, 4 is random
   /*FIESTA DEL ARBOL -  Techno*/
+  const uint8_t NOTES7[ 6 ][ 6 ] = {  {60, 64, 0, 0, 0, 0},     // Canal 1   < -- Mainstage 61 y 65 Resolume 60 y 64 
+                                      {48, 52, 55, 59, 60, 64}, // Canal 2 
+                                      {60, 64, 67, 71, 72, 60}, // Canal 3
+                                      {48, 52, 55, 59, 60, 64}, // Canal 4
+                                      {60, 64, 67, 71, 72, 60}, // Canal 5
+                                      {36, 40, 43, 47, 48, 52}};// Canal 6
+  const uint8_t MODES7[6] = {0, 0, 0, 0, 0, 0};      //<-- Electrodes used for mode control (5 modes) // 0 is note on-off, 1 is notes with Control Change, 2 is proximity, 3 is counter, 4 is random
+  /*VIDEO ARBOL + CANCION CORTAR UN ARBOL - Arbol */
   const uint8_t NOTES8[ 6 ][ 6 ] = {  {60, 64, 0, 0, 0, 0},     // Canal 1   < -- Mainstage 61 y 65 Resolume 60 y 64 
                                       {48, 52, 55, 59, 60, 64}, // Canal 2 
                                       {60, 64, 67, 71, 72, 60}, // Canal 3
@@ -99,7 +103,7 @@
                                       {60, 64, 67, 71, 72, 60}, // Canal 5
                                       {36, 40, 43, 47, 48, 52}};// Canal 6
   const uint8_t MODES8[6] = {0, 0, 0, 0, 0, 0};      //<-- Electrodes used for mode control (5 modes) // 0 is note on-off, 1 is notes with Control Change, 2 is proximity, 3 is counter, 4 is random
-  /*VIDEO ARBOL + CANCION CORTAR UN ARBOL - Arbol */
+    /*VIDEO ARBOL + CANCION CORTAR UN ARBOL - Arbol */
   const uint8_t NOTES9[ 6 ][ 6 ] = {  {60, 64, 0, 0, 0, 0},     // Canal 1   < -- Mainstage 61 y 65 Resolume 60 y 64 
                                       {48, 52, 55, 59, 60, 64}, // Canal 2 
                                       {60, 64, 67, 71, 72, 60}, // Canal 3
@@ -107,6 +111,8 @@
                                       {60, 64, 67, 71, 72, 60}, // Canal 5
                                       {36, 40, 43, 47, 48, 52}};// Canal 6
   const uint8_t MODES9[6] = {0, 0, 0, 0, 0, 0};      //<-- Electrodes used for mode control (5 modes) // 0 is note on-off, 1 is notes with Control Change, 2 is proximity, 3 is counter, 4 is random
+  
+  
   /*PIEDRAS - Violencia */
   const uint8_t NOTES10[ 6 ][ 6 ] = { {60, 64, 0, 0, 0, 0},     // Canal 1   < -- Mainstage 61 y 65 Resolume 60 y 64 
                                       {48, 52, 55, 59, 60, 64}, // Canal 2 

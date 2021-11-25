@@ -2,7 +2,7 @@
 //
 
 //Defines
- //#define CONTROL true	// <-- Comentar para emisor
+ #define CONTROL true	// <-- Comentar para emisor
 //#define DEBUG //Uncomment for debug
 
 //Sensor Stuff

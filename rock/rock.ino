@@ -1,4 +1,4 @@
-#include "src/RF24/RF24.h"
+  #include "src/RF24/RF24.h"
 #include "src/RF24Network/RF24Network.h"
 #include "src/RF24Mesh/RF24Mesh.h"
 #include "src/MPR121/MPR121.h"
@@ -258,11 +258,11 @@ void loop(void){
         }
         if ( payload.note == SUSTAIN_CHANGE && payload.message == NOTE_OFF){
           for (uint8_t n=2; n<7; n++){
-            sendMIDI(CC, n, SUSTAIN, sustain_mode);        //Change sustain mode
+            sendMIDI(CC, n, SUSTAIN, sustain_mode*127);         //Change sustain mode
           }
-          sustain_mode != !sustain_mode;
+          sustain_mode =!sustain_mode;
         #ifdef DEBUG
-          Serial.println("GO");
+          Serial.println("sustain");
         #endif          
         }
       }

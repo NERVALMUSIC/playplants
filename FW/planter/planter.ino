@@ -1,4 +1,4 @@
-#include <MIDI.h>
+#include "src/midi/MIDI.h"
 #include "nrf52.h"
 #include <BLEPeripheral.h>
 

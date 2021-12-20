@@ -30,7 +30,7 @@ bool touching[SENSORS];
 //Midi instance
 #ifdef CONTROL
   uint8_t showcount = 0;      //variable to control show modes
-  bool sustain_mode = false; //variable to control sustain mode
+  bool sustain_mode = true; //variable to control sustain mode
   uint8_t modes[6];
   uint8_t notes[ 6 ][ 6 ];
   uint8_t counter = 0;
@@ -74,10 +74,15 @@ void MPRconfig(){
   * to change these settings.
   */
     delay(200);
+    //comentar los dos de abajo para uso normal
     //MPR121.autoSetElectrodes(false);  // autoset all electrode settings
-    //MPR121.autoSetElectrodeCDC();
+   // MPR121.autoSetElectrodeCDC();
     delay(200);
-    //MPR121.setGlobalCDC(1);
+
+    //Variables de snsibilidad usadas en enclave
+   // MPR121.setGlobalCDC(60);
+    //  MPR121.setGlobalCDT(CDT_2US);
+
     #endif
   }
 
@@ -88,6 +93,9 @@ void debug(){
   Serial.print(payload.channel);Serial.print("\t|");Serial.print(payload.note);Serial.print("\t|");Serial.print(payload.message,HEX);Serial.print("\t|");Serial.println(payload.velocity);
   #endif
 }
+
+
+
 
 
 void loop(void){
@@ -197,14 +205,20 @@ void loop(void){
         #endif
       break;
     }
+
+
 /************************************************/    
 /*                    THE END                   */
 /************************************************/
+
     if(network.available()){
       RF24NetworkHeader header;
       network.peek(header);
       network.read(header, &payload, sizeof(payload));
       receiver();
+
+
+      
       if (payload.channel == GOCHANNEL){
         if ( payload.note == ELEC_GO && payload.message == NOTE_OFF){
           switch (MEMORIAS[showcount])
@@ -231,6 +245,13 @@ void loop(void){
           Serial.println("GO");
         #endif          
         }
+
+
+
+       
+
+
+        
         if ( payload.note == ELEC_GO_BACK && payload.message == NOTE_OFF){
           switch (MEMORIAS[showcount-1])
             {
@@ -265,7 +286,10 @@ void loop(void){
           Serial.println("sustain");
         #endif          
         }
+ 
       }
+ 
     }
   #endif
+
 }

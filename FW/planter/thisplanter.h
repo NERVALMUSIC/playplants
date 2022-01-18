@@ -30,13 +30,13 @@ unsigned long msOffset = 0;
 //HW stuff
 int bat_adc = 0;
 bool charge_state = false;
-bool sending = false;
+int connection_state = 0;    //0: Adversising, 1: Connected, 2: Sending
 #define BAT_LOW       835
 #define BAT_HIGH      930
 
 //User Interface
 #define SLOW    2000
-#define FAST    200
+#define FAST    250
 auto red = JLed(RED_LED).Off().LowActive();
 auto green = JLed(GRN_LED).Off().LowActive();
 auto blue = JLed(BLU_LED).Off().LowActive();

@@ -10,9 +10,12 @@
 void setup()
 {  
   //Setup led
-  red.Off().LowActive();
-  green.Off().LowActive();
-  blue.Off().LowActive();
+  red.Off();
+  green.Off();
+  blue.Off();
+  red.Update();
+  green.Update();
+  blue.Update();
   
   //Setup user button
   but.attachClick(singleclick);
@@ -47,7 +50,7 @@ void setup()
 #endif
 
   //Setup Sensor
-  pinMode(INT, INPUT);        // sets interrupt pin as Input
+  pinMode(INT, INPUT_PULLUP);        // sets interrupt pin as Input
   touch_sensor.begin();  
   touch_sensor.reset();
   delay(RESET_DELAY);
@@ -59,18 +62,7 @@ void loop()
 {
   msOffset = millis();
   but.tick();
-  red.Update();
-  green.Update();
-  blue.Update();
-  if(charge_state){
-    red.Set(255);
-    green.Set(127);
-    blue.Set(0);
-  }
-  else{
-    if(!red.IsRunning()){red.Off();}
-    if(!green.IsRunning()){green.Off();}
-  }
+  led_update();
   if(sleep){
     delay(1000);
     nRF5x_lowPower.powerMode(POWER_MODE_OFF);     //Power off if long press has been detected
@@ -85,18 +77,18 @@ void BLEmanager()
   bleSerial.poll();
   if (bleSerial)
   {
-    if(!charge_state && !sending ){blue.On();}
-    //SOLID BLUE
+    if(connection_state == 0){connection_state = 1;}
     for (uint8_t key=0; key < touch_sensor.KEY_COUNT; ++key)
     {
       if(touch_sensor.touched(plantstatus,key)){
         bleSerial.println(" Touched");
+        connection_state = 2;
       }
     }
   }
   else
   {
-    if(!blue.IsRunning()){blue.Breathe(SLOW).Repeat(1);}
+    connection_state = 0;
   }
 #else
 
@@ -118,8 +110,9 @@ void singleclick() {
 #ifdef DEBUG
   if (bleSerial) {bleSerial.println("Single click");}
 #endif
+  red.Set(0);
   green.Breathe(FAST).Repeat(1);
-  if(green.IsRunning()){blue.Off();}
+  blue.Set(0);
   // BLINK GREEN
 } // singleclick
 
@@ -147,40 +140,26 @@ void longPressStop() {
 } // longPressStop
 
 void readBattery(){
-      red.Off();
-      green.Off();
-      blue.Off();
-      red.Update();
-      green.Update();
-      blue.Update();
   digitalWrite(POW_EN, HIGH); // turn on battery monitor
   delay(10);
   bat_adc = analogRead(BAT_MON);
   digitalWrite(POW_EN, LOW); // turn on battery monitor
   if( bat_adc <= BAT_LOW){
     red.Breathe(SLOW).Repeat(1);
-    while(red.IsRunning())
-    {
-      red.Update();
-    }
+    green.Off();
+    blue.Off();
       // SLOW BLINK RED
   }
   else if( bat_adc <= BAT_HIGH){
     red.Breathe(SLOW).Repeat(1);
     green.Breathe(SLOW).Repeat(1);
-    while(red.IsRunning())
-    {
-      red.Update();
-      green.Update();
-    }
-      // SLOW BLINK ORANGE
+    blue.Off();
+      // SLOW BLINK YELLOW
   }
   else{
+    red.Off();
     green.Breathe(SLOW).Repeat(1);
-    while(green.IsRunning())
-    {
-      green.Update();
-    }
+    blue.Off();
       // SLOW BLINK GREEN
   }
 }
@@ -188,4 +167,47 @@ void readBattery(){
 void charge_change(){
   if(digitalRead(CHG) == HIGH){charge_state = true;}
   else{charge_state = false;}
+}
+
+void led_update(){
+  if(charge_state == true){
+    if(!red.IsRunning() && !green.IsRunning() && !blue.IsRunning())
+    {
+      red.Set(255);
+      green.Set(127);
+      blue.Set(0);
+    }
+  }
+  else{
+    switch(connection_state){
+      case 0:
+        if(!red.IsRunning() && !green.IsRunning() && !blue.IsRunning())
+        {
+          red.Set(0);
+          green.Set(0);
+          blue.Breathe(SLOW).Repeat(1);
+        }
+        break;
+      case 1:
+        if(!red.IsRunning() && !green.IsRunning() && !blue.IsRunning())
+        {
+          red.Set(0);
+          green.Set(0);
+          blue.Set(255);
+        }
+        break;
+      case 2:
+        if(!red.IsRunning() && !green.IsRunning() && !blue.IsRunning())
+        {
+          red.Set(0);
+          green.Breathe(FAST).Repeat(1);
+          blue.Set(0);
+          connection_state = 0;
+        }
+        break;
+    }
+  }
+  red.Update();
+  green.Update();
+  blue.Update();
 }

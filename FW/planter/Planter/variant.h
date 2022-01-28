@@ -74,6 +74,13 @@ extern "C"
 #endif
 
 /*
+ * Serial interfaces
+ */
+// Serial
+#define PIN_SERIAL_RX       (26) // P0.26
+#define PIN_SERIAL_TX       (27) // P0.27
+
+/*
  * Wire Interfaces
  */
 #define WIRE_INTERFACES_COUNT 1

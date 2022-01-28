@@ -8,10 +8,9 @@ const uint8_t NOTE_ON = 0x90;           //<-- Used Midi message types
 const uint8_t CC = 0xB0;                //<-- Used Midi message types
 
 //Sensor stuf
-AT42QT2120 touch_sensor;
-AT42QT2120::Status plantstatus;
-const int RESET_DELAY = 2000;
-const int CALIBRATION_LOOP_DELAY = 50;
+AT42QT touch;
+#define KEYS        12
+uint8_t TOUCH_INT_flag = false;
 
 //Radio stuff
 #ifdef DEBUG

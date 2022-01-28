@@ -1,94 +1,118 @@
-// ----------------------------------------------------------------------------
-// AT42QT.h
-//
-//
-// Authors:
-// Peter Polidoro peter@polidoro.io
-// ----------------------------------------------------------------------------
-#ifndef AT42QT_H
-#define AT42QT_H
+#ifndef _AT42QT_H_
+#define _AT42QT_H_
+
 #include <Arduino.h>
+
+#ifdef _WIREBASE_H_
+#include <SoftWire.h>
+#else
 #include <Wire.h>
-
-
-template<typename RegisterAddress>
-class AT42QT
-{
-public:
-  AT42QT(uint8_t device_address,
-    uint8_t chip_id,
-    uint8_t key_count,
-    TwoWire & wire=Wire,
-    int8_t change_pin=-1,
-    int8_t reset_pin=-1);
-
-  void begin();
-  void hardReset();
-  uint8_t getChipId();
-  bool communicating();
-
-  typedef void (*Callback)();
-  void attachChangeCallback(const Callback callback);
-
-  void triggerCalibration();
-  void reset();
-
-private:
-  const uint8_t device_address_;
-  const uint8_t chip_id_;
-  const uint8_t key_count_;
-  TwoWire * const wire_ptr_;
-  const int8_t change_pin_;
-  const int8_t reset_pin_;
-
-  const static uint8_t BITS_PER_BYTE = 8;
-  const static uint8_t BYTE_MAX = 0xFF;
-
-protected:
-  const uint8_t NONZERO_VALUE = 1;
-
-  template<typename Data>
-  void write(RegisterAddress register_address,
-    const Data & data);
-
-  template<typename Data>
-  void write(RegisterAddress register_address,
-    const Data & data,
-    uint8_t data_size);
-
-  template<typename Data>
-  void writeKey(RegisterAddress base_register_address,
-    uint8_t key,
-    const Data & data);
-
-  template<typename Data>
-  void read(RegisterAddress register_address,
-    Data & data);
-
-  template<typename Data>
-  void read(RegisterAddress register_address,
-    Data & data,
-    uint8_t data_size);
-
-  template<typename Data>
-  void readKey(RegisterAddress base_register_address,
-    uint8_t key,
-    Data & data);
-
-private:
-  uint8_t verifyKey(uint8_t key);
-
-  template<typename Data>
-  void writeRegisterBlock(uint8_t register_address_number,
-    const Data & data,
-    uint8_t data_size);
-
-  template<typename Data>
-  void readRegisterBlock(uint8_t register_address_number,
-    Data & data,
-    uint8_t data_size);
-
-
-};
-#include "AT42QT/AT42QTDefinitions.h"
 #endif
+
+#include "QT2120.h"
+
+#define QT_DEBUG Serial
+#define DBG "[DBG] "
+
+/*============================================================================
+Macros
+============================================================================*/
+
+#define PIN_UNCONNECTED        255
+
+class AT42QT {
+  
+  private: //-------------------------------------------------------
+
+  uint8_t GetCommsReady(void);
+  
+  uint8_t write(uint8_t regAddr, uint8_t* dataPtr = 0, uint8_t dataSize = 0);
+  uint8_t read(uint8_t regAddr, uint8_t* dataPtr, uint8_t dataSize);
+  
+#ifdef QT_DEBUG
+  void print(const char* str, uint8_t* valuePtr=0, uint8_t size=0);
+  void print(const char* str, uint8_t value);
+#endif
+
+  uint8_t QtStatus[QT_STATUS_SIZE]; // application storage for QT device-status
+  
+  SetupBlock setup_block; // Setup block structure
+
+  uint8_t addr = QT_I2C_ADDRESS;
+  uint8_t reset_pin = PIN_UNCONNECTED;
+  
+  #ifdef _WIREBASE_H_
+  WireBase* wire;
+  #else
+  TwoWire* wire;
+  #endif
+  
+  public: //--------------------------------------------------------
+  
+  AT42QT();
+  
+  #ifdef _WIREBASE_H_
+  AT42QT(WireBase* _wire);
+  #endif
+  
+  uint8_t begin();
+  uint8_t begin(uint8_t _addr, uint8_t _reset_pin=PIN_UNCONNECTED);
+  
+  uint8_t init();
+  
+  void    hardReset();
+  
+  uint8_t calibrate();
+  uint8_t reset();
+  
+  uint8_t writeReg(uint8_t regAddr, uint8_t value);
+  uint8_t readReg(uint8_t regAddr);
+  
+  uint8_t readSetup();
+  uint8_t writeSetup();
+  
+  uint8_t readStatus(void);
+  
+  void    printSetup();
+  void    printStatus();
+      
+  void    pwm(uint8_t gpio, uint8_t pwm);
+  
+  void    setGPIO(uint8_t state);
+  uint8_t getGPIO();
+  
+  void    setPWM(uint8_t pwmLevel);
+
+  void    IRQ_handler(void);
+  
+  void    setSlider(uint8_t lenght, uint8_t hyst=0, uint8_t res=6);
+  
+  void    setKeyCC(uint8_t num, uint8_t value);
+  void    setKeyBL(uint8_t num, uint8_t value);
+  void    setKeyAKS(uint8_t num, uint8_t value);
+  void    setKeyNTHR(uint8_t num, uint8_t value);
+  
+  void    setKeyCC(uint8_t numFrom, uint8_t numTo, uint8_t value);
+  void    setKeyBL(uint8_t numFrom, uint8_t numTo, uint8_t value);
+  void    setKeyAKS(uint8_t numFrom, uint8_t numTo, uint8_t value);
+  void    setKeyNTHR(uint8_t numFrom, uint8_t numTo, uint8_t value);
+  
+  uint8_t getKey(uint8_t num);
+  uint16_t getKeyMask(void);
+  
+  
+  /*
+  
+  void writeKeyBL(uint8_t num, uint8_t value);
+  void writeKeyBL(uint8_t numFrom, uint8_t numTo, uint8_t value);
+  void writeKeyAKS(uint8_t num, uint8_t value);
+  void writeKeyAKS(uint8_t numFrom, uint8_t numTo, uint8_t value);
+  void writeKeyNTHR(uint8_t num, uint8_t value);
+  void writeKeyNTHR(uint8_t numFrom, uint8_t numTo, uint8_t value);
+  
+  uint8_t readKeyBL(uint8_t num);
+  */
+};
+
+#endif // _AT42QT_H_
+

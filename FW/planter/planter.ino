@@ -35,6 +35,7 @@ void setup()
   bleSerial.setLocalName("ATTEC-DEBUG");
   bleSerial.setDeviceName("ATTEC-DEBUG");           //device name sometimes used by central
   bleSerial.begin();
+  bleSerial.poll();
 #else
   blePeripheral.setLocalName("ATEEC PLANTER");            //local name sometimes used by central
   blePeripheral.setDeviceName("ATEEC PLANTER");           //device name sometimes used by central
@@ -45,7 +46,7 @@ void setup()
   blePeripheral.addAttribute(descriptor);                 //Add descriptors
   characteristic.setValue(0);                             //Set initial value¡
   blePeripheral.begin();                                  //Initialize de periferal
-  BLECentral central = blePeripheral.central();           //Start Advertising
+  msOffset = millis();
 #endif
 
   //Setup Sensor
@@ -56,7 +57,6 @@ void setup()
 
 void loop()
 {
-  msOffset = millis();
   but.tick();
   led_update();
   if(sleep){
@@ -75,11 +75,11 @@ void loop()
 void BLEmanager()
 {
 #ifdef DEBUG
-  bleSerial.poll();
   if (bleSerial){if(connection_state == 0){connection_state = 1;}}
   else{connection_state = 0;}
 #else
-
+  if (central.connected()){if(connection_state == 0){connection_state = 1;}}
+  else{connection_state = 0;}
 #endif
 }
 
@@ -88,10 +88,9 @@ void Sensormanager()
 {
   if(TOUCH_INT_flag) {
     for( int k = 0; k < KEYS; k++)
-    {
-      if (bleSerial) {bleSerial.println(touch.getKey(k));}
+    { 
+      if(touch.getKey(k)){Send_MIDI_BLE(2,NOTE_ON,60+k,127);}
     }
-    if (bleSerial) {bleSerial.println("Is Touch interrupt");}
     touch.IRQ_handler();
     TOUCH_INT_flag = false;
     connection_state = 2;
@@ -99,6 +98,22 @@ void Sensormanager()
 }
 void TOUCH_interrupt() { TOUCH_INT_flag = true; }
 
+void Send_MIDI_BLE(uint8_t channel, uint8_t status_Byte, uint8_t note, uint8_t velocity){
+#ifdef DEBUG
+  if (bleSerial) {bleSerial.println(note);}
+#else
+  if (central.connected()){
+    uint8_t msgBuf[5];    
+    uint16_t currentTimeStamp = millis() & 0x01FFF;
+    msgBuf[0] = ((currentTimeStamp >> 7) & 0x3F) | 0x80; //6 bits plus MSB
+    msgBuf[1] = (currentTimeStamp & 0x7F) | 0x80; //7 bits plus MSB
+    msgBuf[2] = (status_Byte | ((channel - 1) & 0x0f));
+    msgBuf[3] = note;
+    msgBuf[4] = velocity;
+    characteristic.setValue(msgBuf, 5);
+  }
+#endif
+}
 // This function will be called when the button is pressed once.
 void singleclick() {
 #ifdef DEBUG

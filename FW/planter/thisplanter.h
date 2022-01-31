@@ -1,6 +1,6 @@
 
 //Uncomment for BLE-SERIAL (comment for BLE-MIDI)
-#define DEBUG
+//#define DEBUG
 
 //MIDI Stuff
 const uint8_t NOTE_OFF = 0x80;          //<-- Used Midi message types
@@ -20,6 +20,7 @@ uint8_t TOUCH_INT_flag = false;
   BLEService service("03B80E5A-EDE8-4B33-A751-6CE34EC4C700");
   BLECharacteristic characteristic("7772E5DB-3868-4112-A1A9-F2669D106BF3", BLERead | BLEWriteWithoutResponse | BLENotify, 20 );
   BLEDescriptor descriptor = BLEDescriptor("2902", 0);
+  BLECentral central = blePeripheral.central();           //Start Advertising
 #endif
 
 unsigned long msOffset = 0;

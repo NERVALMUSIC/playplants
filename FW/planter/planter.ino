@@ -36,7 +36,6 @@ void setup()
   bleSerial.setLocalName("ATTEC-DEBUG");
   bleSerial.setDeviceName("ATTEC-DEBUG");           //device name sometimes used by central
   bleSerial.begin();
-  bleSerial.poll();
 #else
   blePeripheral.setLocalName("ATEEC PLANTER");            //local name sometimes used by central
   blePeripheral.setDeviceName("ATEEC PLANTER");           //device name sometimes used by central
@@ -52,6 +51,10 @@ void setup()
   //Setup Sensor
   pinMode(INT, INPUT_PULLUP);        // sets interrupt pin as Input
   touch.begin();
+  touch.reset();
+  delay(100);
+  touch.init();
+  delay(100);
   attachInterrupt(INT, TOUCH_interrupt, CHANGE);
 }
 
@@ -60,12 +63,9 @@ void loop()
   but.tick();
   led_update();
   if(sleep){
-    red.Off();
-    green.Off();
-    blue.Off();
-    red.Update();
-    green.Update();
-    blue.Update();
+    red.Off(); green.Off(); blue.Off();  //OFF  
+    red.Update(); green.Update(); blue.Update(); //Update before powering off
+    delay(10);
     nRF5x_lowPower.powerMode(POWER_MODE_OFF);     //Power off if long press has been detected
   }
   Sensormanager();
@@ -75,33 +75,32 @@ void loop()
 void BLEmanager()
 {
 #ifdef DEBUG
-  if (bleSerial){if(connection_state == 0){connection_state = 1;}}
-  else{connection_state = 0;}
+  bleSerial.poll();
+  if (bleSerial){if(connection_state == 0){connection_state = 1;}
+    for( int k = 0; k < KEYS; k++){
+      if(touching[k]){bleSerial.println(k);}
+    }
+  }
+  else{if(connection_state == 1){connection_state = 0;}}
 #else
-  if (central) {
+  blePeripheral.poll();
+  if (blePeripheral.central) {
     if(connection_state == 0){connection_state = 1;}
     //Prep the timestamp
-    msOffset = millis();  
-    if (central.connected()) {
-      //Check if data exists coming in from the serial port
-      for( int k = 0; k < KEYS; k++){
-       if(newtouch[k]){
-        Send_MIDI_BLE(1,NOTE_ON,notes[k],127);
-        newrelease[k] = false;
-        connection_state = 2;
-        }
-       if(newrelease[k]){
-        Send_MIDI_BLE(1,NOTE_OFF,notes[k],127);
-        newtouch[k] = false;
-        connection_state = 2;
-        }
+    msOffset = millis();
+    //Check if data exists coming in from the serial port
+    for( int k = 0; k < KEYS; k++){
+     if(newtouch[k]){
+      Send_MIDI_BLE(1,NOTE_ON,notes[k],127);
+      newrelease[k] = false;
+      }
+     else if(newrelease[k]){
+      Send_MIDI_BLE(1,NOTE_OFF,notes[k],127);
+      newtouch[k] = false;
       }
     }
   }
-  else{
-    if(connection_state == 1){connection_state = 0;}
-    central = blePeripheral.central();
-  }
+  else{if(connection_state == 1){connection_state = 0;}}
 #endif
 }
 
@@ -109,39 +108,39 @@ void BLEmanager()
 void Sensormanager()
 {
   if(TOUCH_INT_flag) {
-    touch.IRQ_handler();
     for( int k = 0; k < KEYS; k++)
     { 
-      if(touch.getKey(k)){if(!newtouch[k]){newtouch[k]= true;}}
-      else{if(!newrelease[k]){newrelease[k]= true;}}
+      touching[k] = touch.getKey(k);
     }
-    connection_state = 2;
     TOUCH_INT_flag = false;
   }
 }
-void TOUCH_interrupt() { TOUCH_INT_flag = true; }
-
+#ifndef DEBUG
 void Send_MIDI_BLE(uint8_t channel, uint8_t status_Byte, uint8_t note, uint8_t velocity){
-#ifdef DEBUG
-  if (bleSerial) {bleSerial.println(note);}
-#else
-    uint8_t msgBuf[5];    
-    uint16_t currentTimeStamp = millis() & 0x01FFF;
-    msgBuf[0] = ((currentTimeStamp >> 7) & 0x3F) | 0x80; //6 bits plus MSB
-    msgBuf[1] = (currentTimeStamp & 0x7F) | 0x80; //7 bits plus MSB
-    msgBuf[2] = (status_Byte | ((channel - 1) & 0x0f));
-    msgBuf[3] = note;
-    msgBuf[4] = velocity;
-    characteristic.setValue(msgBuf, 5);
-#endif
+  uint8_t msgBuf[5];    
+  uint16_t currentTimeStamp = millis() & 0x01FFF;
+  msgBuf[0] = ((currentTimeStamp >> 7) & 0x3F) | 0x80; //6 bits plus MSB
+  msgBuf[1] = (currentTimeStamp & 0x7F) | 0x80; //7 bits plus MSB
+  msgBuf[2] = (status_Byte | ((channel - 1) & 0x0f));
+  msgBuf[3] = note;
+  msgBuf[4] = velocity;
+  characteristic.setValue(msgBuf, 5);
 }
+#endif
+
+// This function will be called when a sensor is touched.
+void TOUCH_interrupt() { 
+  touch.IRQ_handler();
+  red.Off(); green.Breathe(FAST).Repeat(1); blue.Off();  // BLINK GREEN
+  TOUCH_INT_flag = true; 
+}
+
 // This function will be called when the button is pressed once.
 void singleclick() {
 #ifdef DEBUG
   if (bleSerial) {bleSerial.println("Single click");}
 #endif
-    connection_state = 2;
-  // BLINK GREEN
+    red.Off(); green.Breathe(FAST).Repeat(1); blue.Off();  // BLINK GREEN
 } // singleclick
 
 // This function will be called when the button was pressed 2 times in a short timeframe.
@@ -154,18 +153,14 @@ void doubleclick() {
 
 // This function will be called once, when the button is released after beeing pressed for a long time.
 void longPressStop() {
+#ifdef DEBUG
+  if (bleSerial) {bleSerial.println("Sleep");}
+#endif
   sleep = true;
   digitalWrite(POW_EN, LOW);
-//  touch_sensor.setMeasurementIntervalCount(0);
-  red.Breathe(SLOW).Repeat(1);
-  green.Breathe(SLOW).Repeat(1);
-  blue.Breathe(SLOW).Repeat(1);
-  while(red.IsRunning())
-    {
-      red.Update();
-      green.Update();
-      blue.Update();
-    }
+  //TO DO: shut down sensor
+  red.Breathe(SLOW).Repeat(1);  green.Breathe(SLOW).Repeat(1);  blue.Breathe(SLOW).Repeat(1);// SLOW BLINK WHITE
+  while(red.IsRunning()){red.Update();green.Update();blue.Update();}  //wait for led show before powering off
 } // longPressStop
 
 void readBattery(){
@@ -173,70 +168,36 @@ void readBattery(){
   delay(10);
   bat_adc = analogRead(BAT_MON);
   digitalWrite(POW_EN, LOW); // turn off battery monitor
-  if( bat_adc <= BAT_LOW){
-    red.Breathe(SLOW).Repeat(1);
-    green.Off();
-    blue.Off();
-      // SLOW BLINK RED
-  }
-  else if( bat_adc <= BAT_HIGH){
-    red.Breathe(SLOW).Repeat(1);
-    green.Breathe(SLOW).Repeat(1);
-    blue.Off();
-      // SLOW BLINK YELLOW
-  }
-  else{
-    red.Off();
-    green.Breathe(SLOW).Repeat(1);
-    blue.Off();
-      // SLOW BLINK GREEN
-  }
+  if( bat_adc <= BAT_LOW){ red.Breathe(SLOW).Repeat(1);green.Off();blue.Off();  }// SLOW BLINK RED
+  else if( bat_adc <= BAT_HIGH){red.Breathe(SLOW).Repeat(1);green.Breathe(SLOW).Repeat(1);blue.Off();  }// SLOW BLINK YELLOW
+  else{red.Off();green.Breathe(SLOW).Repeat(1);blue.Off();  }// SLOW BLINK GREEN
 }
 
 void charge_change(){
-  if(digitalRead(CHG) == HIGH){charge_state = true;}
-  else{charge_state = false;}
+  if(digitalRead(CHG) == HIGH){connection_state = 2;}
+  else{connection_state = 0;}
 }
 
 void led_update(){
-  if(charge_state == true){
-    if(!red.IsRunning() && !green.IsRunning() && !blue.IsRunning())
-    {
-      red.Set(255);
-      green.Set(127);
-      blue.Set(0);
-    }
+  switch(connection_state){
+    case 0:     //advertising
+      if(!red.IsRunning() && !green.IsRunning() && !blue.IsRunning())
+      {
+        red.Set(0); green.Set(0); blue.Breathe(SLOW).Repeat(1); //BREATHE BLUE
+      }
+      break;
+    case 1:     //connected
+      if(!red.IsRunning() && !green.IsRunning() && !blue.IsRunning())
+      {
+        red.Set(0); green.Set(0); blue.Set(255); //SOLID BLUE
+      }
+      break;
+    case 2:     //charging
+      if(!red.IsRunning() && !green.IsRunning() && !blue.IsRunning())
+      {
+        red.Set(191); green.Set(127); blue.Set(0); //SOLID ORANGE
+      }
+      break;
   }
-  else{
-    switch(connection_state){
-      case 0:
-        if(!red.IsRunning() && !green.IsRunning() && !blue.IsRunning())
-        {
-          red.Set(0);
-          green.Set(0);
-          blue.Breathe(SLOW).Repeat(1);
-        }
-        break;
-      case 1:
-        if(!red.IsRunning() && !green.IsRunning() && !blue.IsRunning())
-        {
-          red.Set(0);
-          green.Set(0);
-          blue.Set(255);
-        }
-        break;
-      case 2:
-        if(!red.IsRunning() && !green.IsRunning() && !blue.IsRunning())
-        {
-          red.Set(0);
-          green.Breathe(SLOW).Repeat(1);
-          blue.Set(0);
-          connection_state = 0;
-        }
-        break;
-    }
-  }
-  red.Update();
-  green.Update();
-  blue.Update();
+  red.Update();  green.Update();  blue.Update();
 }

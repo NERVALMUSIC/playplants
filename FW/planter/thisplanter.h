@@ -11,6 +11,10 @@ const uint8_t CC = 0xB0;                //<-- Used Midi message types
 AT42QT touch;
 #define KEYS        12
 uint8_t TOUCH_INT_flag = false;
+const uint8_t notes[12] = {60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71};
+bool newtouch[12];
+bool newrelease[12];
+
 
 //Radio stuff
 #ifdef DEBUG
@@ -20,7 +24,7 @@ uint8_t TOUCH_INT_flag = false;
   BLEService service("03B80E5A-EDE8-4B33-A751-6CE34EC4C700");
   BLECharacteristic characteristic("7772E5DB-3868-4112-A1A9-F2669D106BF3", BLERead | BLEWriteWithoutResponse | BLENotify, 20 );
   BLEDescriptor descriptor = BLEDescriptor("2902", 0);
-  BLECentral central = blePeripheral.central();           //Start Advertising
+  BLECentral central = blePeripheral.central();
 #endif
 
 unsigned long msOffset = 0;

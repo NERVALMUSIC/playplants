@@ -22,6 +22,7 @@ void setup()
   but.attachDoubleClick(doubleclick);
   but.attachLongPressStop(longPressStop);
   nRF5x_lowPower.enableWakeupByInterrupt(BUTTON_PIN, FALLING);
+  nRF5x_lowPower.enableWakeupByInterrupt(CHG, RISING);
   //setup battery manager
   analogReference(AR_VDD4);   // Full adc range (0 - VDD)
   pinMode(POW_EN, OUTPUT);    // sets power enable as Output
@@ -46,7 +47,6 @@ void setup()
   blePeripheral.addAttribute(descriptor);                 //Add descriptors
   characteristic.setValue(0);                             //Set initial value¡
   blePeripheral.begin();                                  //Initialize de periferal
-  msOffset = millis();
 #endif
 
   //Setup Sensor
@@ -78,8 +78,30 @@ void BLEmanager()
   if (bleSerial){if(connection_state == 0){connection_state = 1;}}
   else{connection_state = 0;}
 #else
-  if (central.connected()){if(connection_state == 0){connection_state = 1;}}
-  else{connection_state = 0;}
+  if (central) {
+    if(connection_state == 0){connection_state = 1;}
+    //Prep the timestamp
+    msOffset = millis();  
+    if (central.connected()) {
+      //Check if data exists coming in from the serial port
+      for( int k = 0; k < KEYS; k++){
+       if(newtouch[k]){
+        Send_MIDI_BLE(1,NOTE_ON,notes[k],127);
+        newrelease[k] = false;
+        connection_state = 2;
+        }
+       if(newrelease[k]){
+        Send_MIDI_BLE(1,NOTE_OFF,notes[k],127);
+        newtouch[k] = false;
+        connection_state = 2;
+        }
+      }
+    }
+  }
+  else{
+    if(connection_state == 1){connection_state = 0;}
+    central = blePeripheral.central();
+  }
 #endif
 }
 
@@ -87,13 +109,14 @@ void BLEmanager()
 void Sensormanager()
 {
   if(TOUCH_INT_flag) {
+    touch.IRQ_handler();
     for( int k = 0; k < KEYS; k++)
     { 
-      if(touch.getKey(k)){Send_MIDI_BLE(2,NOTE_ON,60+k,127);}
+      if(touch.getKey(k)){if(!newtouch[k]){newtouch[k]= true;}}
+      else{if(!newrelease[k]){newrelease[k]= true;}}
     }
-    touch.IRQ_handler();
-    TOUCH_INT_flag = false;
     connection_state = 2;
+    TOUCH_INT_flag = false;
   }
 }
 void TOUCH_interrupt() { TOUCH_INT_flag = true; }
@@ -102,7 +125,6 @@ void Send_MIDI_BLE(uint8_t channel, uint8_t status_Byte, uint8_t note, uint8_t v
 #ifdef DEBUG
   if (bleSerial) {bleSerial.println(note);}
 #else
-  if (central.connected()){
     uint8_t msgBuf[5];    
     uint16_t currentTimeStamp = millis() & 0x01FFF;
     msgBuf[0] = ((currentTimeStamp >> 7) & 0x3F) | 0x80; //6 bits plus MSB
@@ -111,7 +133,6 @@ void Send_MIDI_BLE(uint8_t channel, uint8_t status_Byte, uint8_t note, uint8_t v
     msgBuf[3] = note;
     msgBuf[4] = velocity;
     characteristic.setValue(msgBuf, 5);
-  }
 #endif
 }
 // This function will be called when the button is pressed once.
@@ -208,7 +229,7 @@ void led_update(){
         if(!red.IsRunning() && !green.IsRunning() && !blue.IsRunning())
         {
           red.Set(0);
-          green.Breathe(FAST).Repeat(1);
+          green.Breathe(SLOW).Repeat(1);
           blue.Set(0);
           connection_state = 0;
         }

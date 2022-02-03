@@ -3,15 +3,13 @@
 
 #include <Arduino.h>
 
-#ifdef _WIREBASE_H_
-#include <SoftWire.h>
-#else
 #include <Wire.h>
 #endif
 
 #include "QT2120.h"
 
-#define QT_DEBUG Serial
+
+#define QT_DEBUG bleSerial
 #define DBG "[DBG] "
 
 /*============================================================================
@@ -40,20 +38,12 @@ class AT42QT {
 
   uint8_t addr = QT_I2C_ADDRESS;
   uint8_t reset_pin = PIN_UNCONNECTED;
-  
-  #ifdef _WIREBASE_H_
-  WireBase* wire;
-  #else
+
   TwoWire* wire;
-  #endif
-  
+
   public: //--------------------------------------------------------
   
   AT42QT();
-  
-  #ifdef _WIREBASE_H_
-  AT42QT(WireBase* _wire);
-  #endif
   
   uint8_t begin();
   uint8_t begin(uint8_t _addr, uint8_t _reset_pin=PIN_UNCONNECTED);
@@ -68,24 +58,17 @@ class AT42QT {
   uint8_t writeReg(uint8_t regAddr, uint8_t value);
   uint8_t readReg(uint8_t regAddr);
   
-  uint8_t readSetup();
   uint8_t writeSetup();
+  uint8_t readSetup();
   
   uint8_t readStatus(void);
-  
-  void    printSetup();
-  void    printStatus();
-      
-  void    pwm(uint8_t gpio, uint8_t pwm);
-  
-  void    setGPIO(uint8_t state);
-  uint8_t getGPIO();
-  
-  void    setPWM(uint8_t pwmLevel);
 
   void    IRQ_handler(void);
-  
-  void    setSlider(uint8_t lenght, uint8_t hyst=0, uint8_t res=6);
+
+#ifdef QT_DEBUG
+  void    printSetup();
+  void    printStatus();
+#endif
   
   void    setKeyCC(uint8_t num, uint8_t value);
   void    setKeyBL(uint8_t num, uint8_t value);
@@ -99,19 +82,16 @@ class AT42QT {
   
   uint8_t getKey(uint8_t num);
   uint16_t getKeyMask(void);
+
+  void    setSlider(uint8_t lenght, uint8_t hyst=0, uint8_t res=6);
+
+  void    setGPIO(uint8_t state);
+  uint8_t getGPIO();
   
+  void    pwm(uint8_t gpio, uint8_t pwm);
   
-  /*
-  
-  void writeKeyBL(uint8_t num, uint8_t value);
-  void writeKeyBL(uint8_t numFrom, uint8_t numTo, uint8_t value);
-  void writeKeyAKS(uint8_t num, uint8_t value);
-  void writeKeyAKS(uint8_t numFrom, uint8_t numTo, uint8_t value);
-  void writeKeyNTHR(uint8_t num, uint8_t value);
-  void writeKeyNTHR(uint8_t numFrom, uint8_t numTo, uint8_t value);
-  
-  uint8_t readKeyBL(uint8_t num);
-  */
+  void    setPWM(uint8_t pwmLevel);
+
 };
 
 #endif // _AT42QT_H_

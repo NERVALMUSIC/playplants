@@ -22,7 +22,7 @@ void setup()
   but.attachDoubleClick(doubleclick);
   but.attachLongPressStop(longPressStop);
   nRF5x_lowPower.enableWakeupByInterrupt(BUTTON_PIN, FALLING);
-  nRF5x_lowPower.enableWakeupByInterrupt(CHG, CHANGE);
+  nRF5x_lowPower.enableWakeupByInterrupt(CHG, FALLING);
   //setup battery manager
   analogReference(AR_VDD4);   // Full adc range (0 - VDD)
   pinMode(POW_EN, OUTPUT);    // sets power enable as Output
@@ -32,21 +32,17 @@ void setup()
   readBattery();
   
   //Setup radio
-#ifdef DEBUG
-  bleSerial.setLocalName("ATTEC-DEBUG");
-  bleSerial.setDeviceName("ATTEC-DEBUG");           //device name sometimes used by central
-  bleSerial.begin();
-#else
   blePeripheral.setLocalName("ATEEC PLANTER");            //local name sometimes used by central
   blePeripheral.setDeviceName("ATEEC PLANTER");           //device name sometimes used by central
   blePeripheral.setAppearance(0x054E);                    //default is 0x0000, Check Bluetooth spec
+#ifndef DEBUG  
   blePeripheral.setAdvertisedServiceUuid(service.uuid()); //Set advertiser MIDI UUID
   blePeripheral.addAttribute(service);                    //Add servie
   blePeripheral.addAttribute(characteristic);             //Add characteristics
   blePeripheral.addAttribute(descriptor);                 //Add descriptors
-  characteristic.setValue(0);                             //Set initial value¡
-  blePeripheral.begin();                                  //Initialize de periferal
+  characteristic.setValue(0);                             //Set initial value
 #endif
+  blePeripheral.begin();                                  //Initialize de periferal
 
   //Setup Sensor
   pinMode(INT, INPUT_PULLUP);        // sets interrupt pin as Input

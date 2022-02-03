@@ -25,7 +25,7 @@ void led_update(){
 // This function will be called when the button is pressed once.
 void singleclick() {
 #ifdef DEBUG
-  if (bleSerial) {bleSerial.println("Single click");}
+  if (blePeripheral) {blePeripheral.println("Single click");}
 #endif
     //TO DO: Assign function to single click
     touch.calibrate();
@@ -35,7 +35,7 @@ void singleclick() {
 // This function will be called when the button was pressed 2 times in a short timeframe.
 void doubleclick() {
 #ifdef DEBUG
-  if (bleSerial) {bleSerial.println("Double click");}
+  if (blePeripheral) {blePeripheral.println("Double click");}
 #endif
   readBattery();
 } // doubleclick
@@ -43,7 +43,7 @@ void doubleclick() {
 // This function will be called once, when the button is released after beeing pressed for a long time.
 void longPressStop() {
 #ifdef DEBUG
-  if (bleSerial) {bleSerial.println("Sleep");}
+  if (blePeripheral) {blePeripheral.println("Sleep");}
 #endif
   power_off();
 } // longPressStop

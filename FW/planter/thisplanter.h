@@ -1,6 +1,6 @@
 
 //Uncomment for BLE-SERIAL (comment for BLE-MIDI)
-#define DEBUG
+//#define DEBUG
 
 //MIDI Stuff
 const uint8_t NOTE_OFF = 0x80;          //<-- Used Midi message types
@@ -20,7 +20,7 @@ bool newrelease[12] = {false, false, false, false, false, false, false, false, f
 
 //Radio stuff
 #ifdef DEBUG
-  BLESerial bleSerial;
+  BLESerial blePeripheral;
 #else
   BLEPeripheral blePeripheral;
   BLEService service("03B80E5A-EDE8-4B33-A751-6CE34EC4C700");

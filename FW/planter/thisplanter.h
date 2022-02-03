@@ -13,6 +13,7 @@ AT42QT touch;
 uint8_t TOUCH_INT_flag = false;
 const uint8_t notes[12] = {60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71};
 bool touching[12] = {false, false, false, false, false, false, false, false, false, false, false, false};
+bool lastouch[12] = {false, false, false, false, false, false, false, false, false, false, false, false};
 bool newtouch[12] = {false, false, false, false, false, false, false, false, false, false, false, false};
 bool newrelease[12] = {false, false, false, false, false, false, false, false, false, false, false, false};
 
@@ -34,7 +35,7 @@ unsigned long msOffset = 0;
 //HW stuff
 int bat_adc = 0;
 bool charge_state = false;
-int connection_state = 0;    //0: Adversising, 1: Connected, 2: Sending
+int connection_state = 0;    //0: Adversising, 1: Connected, 2: Charging
 #define BAT_LOW       835
 #define BAT_HIGH      930
 
@@ -50,4 +51,3 @@ OneButton but(
   true,        // Button is active LOW
   true         // Enable internal pull-up resistor
 );
-static bool sleep = false;

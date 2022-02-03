@@ -22,7 +22,7 @@ void setup()
   but.attachDoubleClick(doubleclick);
   but.attachLongPressStop(longPressStop);
   nRF5x_lowPower.enableWakeupByInterrupt(BUTTON_PIN, FALLING);
-  nRF5x_lowPower.enableWakeupByInterrupt(CHG, RISING);
+  nRF5x_lowPower.enableWakeupByInterrupt(CHG, CHANGE);
   //setup battery manager
   analogReference(AR_VDD4);   // Full adc range (0 - VDD)
   pinMode(POW_EN, OUTPUT);    // sets power enable as Output
@@ -39,7 +39,7 @@ void setup()
 #else
   blePeripheral.setLocalName("ATEEC PLANTER");            //local name sometimes used by central
   blePeripheral.setDeviceName("ATEEC PLANTER");           //device name sometimes used by central
-  blePeripheral.setAppearance(0x0340);                    //default is 0x0000, Check Bluetooth spec
+  blePeripheral.setAppearance(0x054E);                    //default is 0x0000, Check Bluetooth spec
   blePeripheral.setAdvertisedServiceUuid(service.uuid()); //Set advertiser MIDI UUID
   blePeripheral.addAttribute(service);                    //Add servie
   blePeripheral.addAttribute(characteristic);             //Add characteristics
@@ -62,142 +62,27 @@ void loop()
 {
   but.tick();
   led_update();
-  if(sleep){
-    red.Off(); green.Off(); blue.Off();  //OFF  
-    red.Update(); green.Update(); blue.Update(); //Update before powering off
-    delay(10);
-    nRF5x_lowPower.powerMode(POWER_MODE_OFF);     //Power off if long press has been detected
-  }
   Sensormanager();
   BLEmanager();
 }
 
-void BLEmanager()
-{
-#ifdef DEBUG
-  bleSerial.poll();
-  if (bleSerial){if(connection_state == 0){connection_state = 1;}
-    for( int k = 0; k < KEYS; k++){
-      if(touching[k]){bleSerial.println(k);}
-    }
-  }
-  else{if(connection_state == 1){connection_state = 0;}}
-#else
-  blePeripheral.poll();
-  if (blePeripheral.central) {
-    if(connection_state == 0){connection_state = 1;}
-    //Prep the timestamp
-    msOffset = millis();
-    //Check if data exists coming in from the serial port
-    for( int k = 0; k < KEYS; k++){
-     if(newtouch[k]){
-      Send_MIDI_BLE(1,NOTE_ON,notes[k],127);
-      newrelease[k] = false;
-      }
-     else if(newrelease[k]){
-      Send_MIDI_BLE(1,NOTE_OFF,notes[k],127);
-      newtouch[k] = false;
-      }
-    }
-  }
-  else{if(connection_state == 1){connection_state = 0;}}
-#endif
-}
-
 //Poll the sensor inputs and convert any relevant data to midi format
-void Sensormanager()
-{
+void Sensormanager(){
   if(TOUCH_INT_flag) {
     for( int k = 0; k < KEYS; k++)
     { 
       touching[k] = touch.getKey(k);
+      if((lastouch[k] != touching[k]) && touching[k]){newrelease[k] = true;}
+      if((lastouch[k] != touching[k]) && !touching[k]){newtouch[k] = true;}
+      lastouch[k] = touching[k];
     }
     TOUCH_INT_flag = false;
   }
 }
-#ifndef DEBUG
-void Send_MIDI_BLE(uint8_t channel, uint8_t status_Byte, uint8_t note, uint8_t velocity){
-  uint8_t msgBuf[5];    
-  uint16_t currentTimeStamp = millis() & 0x01FFF;
-  msgBuf[0] = ((currentTimeStamp >> 7) & 0x3F) | 0x80; //6 bits plus MSB
-  msgBuf[1] = (currentTimeStamp & 0x7F) | 0x80; //7 bits plus MSB
-  msgBuf[2] = (status_Byte | ((channel - 1) & 0x0f));
-  msgBuf[3] = note;
-  msgBuf[4] = velocity;
-  characteristic.setValue(msgBuf, 5);
-}
-#endif
 
 // This function will be called when a sensor is touched.
 void TOUCH_interrupt() { 
   touch.IRQ_handler();
   red.Off(); green.Breathe(FAST).Repeat(1); blue.Off();  // BLINK GREEN
   TOUCH_INT_flag = true; 
-}
-
-// This function will be called when the button is pressed once.
-void singleclick() {
-#ifdef DEBUG
-  if (bleSerial) {bleSerial.println("Single click");}
-#endif
-    red.Off(); green.Breathe(FAST).Repeat(1); blue.Off();  // BLINK GREEN
-} // singleclick
-
-// This function will be called when the button was pressed 2 times in a short timeframe.
-void doubleclick() {
-#ifdef DEBUG
-  if (bleSerial) {bleSerial.println("Double click");}
-#endif
-  readBattery();
-} // doubleclick
-
-// This function will be called once, when the button is released after beeing pressed for a long time.
-void longPressStop() {
-#ifdef DEBUG
-  if (bleSerial) {bleSerial.println("Sleep");}
-#endif
-  sleep = true;
-  digitalWrite(POW_EN, LOW);
-  //TO DO: shut down sensor
-  red.Breathe(SLOW).Repeat(1);  green.Breathe(SLOW).Repeat(1);  blue.Breathe(SLOW).Repeat(1);// SLOW BLINK WHITE
-  while(red.IsRunning()){red.Update();green.Update();blue.Update();}  //wait for led show before powering off
-} // longPressStop
-
-void readBattery(){
-  digitalWrite(POW_EN, HIGH); // turn on battery monitor
-  delay(10);
-  bat_adc = analogRead(BAT_MON);
-  digitalWrite(POW_EN, LOW); // turn off battery monitor
-  if( bat_adc <= BAT_LOW){ red.Breathe(SLOW).Repeat(1);green.Off();blue.Off();  }// SLOW BLINK RED
-  else if( bat_adc <= BAT_HIGH){red.Breathe(SLOW).Repeat(1);green.Breathe(SLOW).Repeat(1);blue.Off();  }// SLOW BLINK YELLOW
-  else{red.Off();green.Breathe(SLOW).Repeat(1);blue.Off();  }// SLOW BLINK GREEN
-}
-
-void charge_change(){
-  if(digitalRead(CHG) == HIGH){connection_state = 2;}
-  else{connection_state = 0;}
-}
-
-void led_update(){
-  switch(connection_state){
-    case 0:     //advertising
-      if(!red.IsRunning() && !green.IsRunning() && !blue.IsRunning())
-      {
-        red.Set(0); green.Set(0); blue.Breathe(SLOW).Repeat(1); //BREATHE BLUE
-      }
-      break;
-    case 1:     //connected
-      if(!red.IsRunning() && !green.IsRunning() && !blue.IsRunning())
-      {
-        red.Set(0); green.Set(0); blue.Set(255); //SOLID BLUE
-      }
-      break;
-    case 2:     //charging
-      if(!red.IsRunning() && !green.IsRunning() && !blue.IsRunning())
-      {
-        red.Set(191); green.Set(127); blue.Set(0); //SOLID ORANGE
-      }
-      break;
-  }
-  red.Update();  green.Update();  blue.Update();
 }

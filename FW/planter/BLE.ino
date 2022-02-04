@@ -10,13 +10,13 @@ void BLEmanager()
     if(connection_state == 0){connection_state = 1;}
 #endif
     for( int k = 0; k < KEYS; k++){
-      if(newtouch[k]){
-        Send_MIDI_BLE(1, NOTE_ON, notes[k], 127);
-        newtouch[k] = false;
-      }
       if(newrelease[k]){
         Send_MIDI_BLE(1, NOTE_OFF, notes[k], 0);
         newrelease[k] = false;
+      }
+      if(newtouch[k]){
+        Send_MIDI_BLE(1, NOTE_ON, notes[k], 127);
+        newtouch[k] = false;
       }
     }
   }

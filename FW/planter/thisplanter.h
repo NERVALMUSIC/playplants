@@ -11,7 +11,7 @@ const uint8_t CC = 0xB0;                //<-- Used Midi message types
 AT42QT touch;
 #define KEYS        12
 uint8_t TOUCH_INT_flag = false;
-const uint8_t notes[12] = {60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71};
+const uint8_t notes[12] = {50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61};
 bool touching[12] = {false, false, false, false, false, false, false, false, false, false, false, false};
 bool lastouch[12] = {false, false, false, false, false, false, false, false, false, false, false, false};
 bool newtouch[12] = {false, false, false, false, false, false, false, false, false, false, false, false};

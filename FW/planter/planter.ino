@@ -68,8 +68,8 @@ void Sensormanager(){
     for( int k = 0; k < KEYS; k++)
     { 
       touching[k] = touch.getKey(k);
-      if((lastouch[k] != touching[k]) && touching[k]){newrelease[k] = true;}
-      if((lastouch[k] != touching[k]) && !touching[k]){newtouch[k] = true;}
+      if((lastouch[k] != touching[k]) && touching[k]){newtouch[k] = true;}
+      if((lastouch[k] != touching[k]) && !touching[k]){newrelease[k] = true;}
       lastouch[k] = touching[k];
     }
     TOUCH_INT_flag = false;

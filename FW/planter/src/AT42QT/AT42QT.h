@@ -4,13 +4,13 @@
 #include <Arduino.h>
 
 #include <Wire.h>
-#endif
 
 #include "QT2120.h"
 
-
-#define QT_DEBUG bleSerial
-#define DBG "[DBG] "
+#ifdef DEBUG
+	#define QT_DEBUG bleSerial
+	#define DBG "[DBG] "
+#endif
 
 /*============================================================================
 Macros
@@ -46,13 +46,11 @@ class AT42QT {
   AT42QT();
   
   uint8_t begin();
-  uint8_t begin(uint8_t _addr, uint8_t _reset_pin=PIN_UNCONNECTED);
   
   uint8_t init();
-  
-  void    hardReset();
-  
+   
   uint8_t calibrate();
+  
   uint8_t reset();
   
   uint8_t writeReg(uint8_t regAddr, uint8_t value);
@@ -70,27 +68,13 @@ class AT42QT {
   void    printStatus();
 #endif
   
-  void    setKeyCC(uint8_t num, uint8_t value);
-  void    setKeyBL(uint8_t num, uint8_t value);
-  void    setKeyAKS(uint8_t num, uint8_t value);
-  void    setKeyNTHR(uint8_t num, uint8_t value);
+  void    setKeyDTHR(uint8_t num, uint8_t value);  
+  void    setKeyDTHR(uint8_t numFrom, uint8_t numTo, uint8_t value);
   
-  void    setKeyCC(uint8_t numFrom, uint8_t numTo, uint8_t value);
-  void    setKeyBL(uint8_t numFrom, uint8_t numTo, uint8_t value);
-  void    setKeyAKS(uint8_t numFrom, uint8_t numTo, uint8_t value);
-  void    setKeyNTHR(uint8_t numFrom, uint8_t numTo, uint8_t value);
+
   
   uint8_t getKey(uint8_t num);
   uint16_t getKeyMask(void);
-
-  void    setSlider(uint8_t lenght, uint8_t hyst=0, uint8_t res=6);
-
-  void    setGPIO(uint8_t state);
-  uint8_t getGPIO();
-  
-  void    pwm(uint8_t gpio, uint8_t pwm);
-  
-  void    setPWM(uint8_t pwmLevel);
 
 };
 

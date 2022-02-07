@@ -38,14 +38,6 @@ uint8_t AT42QT::begin() {
   return true;
 }
 
-/*--------Extended begin with address and reset selection-------------------*/
-
-uint8_t AT42QT::begin(uint8_t _addr, uint8_t _reset_pin) {
-  addr = _addr;
-  reset_pin = _reset_pin;
-  return begin();
-}
-
 /*============================================================================
 Name    :   Init
 ------------------------------------------------------------------------------
@@ -57,34 +49,22 @@ uint8_t AT42QT::init() {
 }
 
 /*============================================================================
-Name    :   reset
-------------------------------------------------------------------------------
-Purpose :   Performs a software reset of the QT device
-============================================================================*/
-uint8_t AT42QT::reset(void)  {
-	if(writeReg(QT_RESET, 1)) return true;
-	return false;
-}
-
-/*============================================================================
-Name    :   hardreset
-------------------------------------------------------------------------------
-Purpose :   Performs a hardware reset of the QT device
-============================================================================*/
-void AT42QT::hardReset(void) {
-  if(reset_pin == PIN_UNCONNECTED) return;
-  digitalWrite(reset_pin, LOW);
-  delay(1);
-  digitalWrite(reset_pin, HIGH);
-}
-
-/*============================================================================
 Name    :   calibrate
 ------------------------------------------------------------------------------
 Purpose :   Performs a calibration of the QT device
 ============================================================================*/
 uint8_t AT42QT::calibrate() {
 	if(writeReg(QT_CALIBRATE, 1)) return true;
+	return false;
+}
+
+/*============================================================================
+Name    :   reset
+------------------------------------------------------------------------------
+Purpose :   Performs a software reset of the QT device
+============================================================================*/
+uint8_t AT42QT::reset(void)  {
+	if(writeReg(QT_RESET, 1)) return true;
 	return false;
 }
 
@@ -185,7 +165,7 @@ void AT42QT::printStatus() {
 		print("QT_GPIO_READ      ", QtStatus[4]);
     print("QT status end");
 }
-#endif
+#endif 
 
 /*============================================================================
 Name    :   setKey<something>
@@ -193,50 +173,18 @@ Name    :   setKey<something>
 Purpose :  Change individual key setup
 ============================================================================*/
 
-void AT42QT::setKeyBL(uint8_t num, uint8_t value) {
-	if(num < 16) num += QT_KEY0_BL;
-	if(num < QT_KEY0_BL || num > QT_KEY15_BL) return;
-	*((uint8_t*)(&setup_block)-QT_SETUPS_BLOCK_ADDR+num) = value;
+void AT42QT::setKeyDTHR(uint8_t num, uint8_t value) {
+	if(num < 12) num += QT_KEY0_DTHR;
+	if(num < QT_KEY0_DTHR || num > QT_KEY11_DTHR) return;
+	*((uint8_t*)(&setup_block)-QT_SETUPS_BLOCK_ADDR+num) = constrain(value, 0, 255);
 }
 
-void AT42QT::setKeyAKS(uint8_t num, uint8_t value) {
-	if(num < 16) num += QT_KEY0_AKS_GRP;
-	if(num < QT_KEY0_AKS_GRP || num > QT_KEY15_AKS_GRP) return;
-	*((uint8_t*)(&setup_block)-QT_SETUPS_BLOCK_ADDR+num) = constrain(value, 0, 3);
-}
-
-void AT42QT::setKeyNTHR(uint8_t num, uint8_t value) {
-	if(num < 16) num += QT_KEY0_NTHR;
-	if(num < QT_KEY0_NTHR || num > QT_KEY15_NTHR) return;
-	*((uint8_t*)(&setup_block)-QT_SETUPS_BLOCK_ADDR+num) = constrain(value, 1, 255);
-}
-
-void AT42QT::setKeyCC(uint8_t num, uint8_t value) {
-	if(num>15) return;
-	if(value>1) value = 1;
-	if(num<8) bitWrite(setup_block.CC_Keys1, num,   value);
-	else      bitWrite(setup_block.CC_Keys2, num-8, value);
-}
-
-void AT42QT::setKeyBL(uint8_t numFrom, uint8_t numTo, uint8_t value) {
+void AT42QT::setKeyDTHR(uint8_t numFrom, uint8_t numTo, uint8_t value) {
 	if(numTo < numFrom) numTo = numFrom;
-	for(uint8_t i=numFrom; i<=numTo; i++) setKeyBL(i, value);
+	for(uint8_t i=numFrom; i<=numTo; i++) setKeyDTHR(i, value);
 }
 
-void AT42QT::setKeyAKS(uint8_t numFrom, uint8_t numTo, uint8_t value) {
-	if(numTo < numFrom) numTo = numFrom;
-	for(uint8_t i=numFrom; i<=numTo; i++) setKeyAKS(i, value);
-}
 
-void AT42QT::setKeyNTHR(uint8_t numFrom, uint8_t numTo, uint8_t value) {
-	if(numTo < numFrom) numTo = numFrom;
-	for(uint8_t i=numFrom; i<=numTo; i++) setKeyNTHR(i, value);
-}
-
-void AT42QT::setKeyCC(uint8_t numFrom, uint8_t numTo, uint8_t value) {
-	if(numTo < numFrom) numTo = numFrom;
-	for(uint8_t i=numFrom; i<=numTo; i++) setKeyCC(i, value);
-}
 
 /*============================================================================
 Name    :   getKey
@@ -251,7 +199,7 @@ uint8_t AT42QT::getKey(uint8_t num) {
 }
 
 /*============================================================================
-Name    :   getKey
+Name    :   getKeyMask
 ------------------------------------------------------------------------------
 Purpose :  get Key Mask
 ============================================================================*/
@@ -260,38 +208,6 @@ uint16_t AT42QT::getKeyMask() {
 	value <<= 8;
 	value |= QtStatus[1];
 	return value;
-}
-
-
-/*============================================================================
-Name    :   setSlider
-------------------------------------------------------------------------------
-Purpose :  configure slider parameters
-============================================================================*/
-void AT42QT::setSlider(uint8_t lenght, uint8_t hyst, uint8_t res) {
-	setup_block.Slider_Num_Keys = constrain(lenght, 0, 8);
-	setup_block.Slider_HYST = constrain(hyst, 0, 15);
-	setup_block.Slider_Resolution = constrain(res, 0, 6);
-}
-
-/*============================================================================
-Name    :   TODO output pin functions
-------------------------------------------------------------------------------
-Purpose :  Control pins set as GPO
-============================================================================*/
-void AT42QT::pwm(uint8_t gpio, uint8_t pwm) {
-		 if(!pwm)     setup_block.PWM_level = 255;
-	else if(pwm==255) setup_block.PWM_level = 0;
-	else setup_block.PWM_level = map(pwm, 1, 254, 11, 249);
-}
-
-void AT42QT::setGPIO(uint8_t state) {
-}
-
-uint8_t AT42QT::getGPIO() {
-}
-
-void AT42QT::setPWM(uint8_t pwmLevel) {
 }
 
 

@@ -47,10 +47,12 @@ void setup()
   //Setup Sensor
   pinMode(INT, INPUT_PULLUP);        // sets interrupt pin as Input
   touch.begin();
+  
   touch.reset();
   delay(100);
   touch.init();
   delay(100);
+  touch.setKeyDTHR(0, 12, 5);
   attachInterrupt(INT, TOUCH_interrupt, CHANGE);
 }
 

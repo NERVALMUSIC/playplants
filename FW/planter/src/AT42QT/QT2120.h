@@ -50,6 +50,9 @@ Macros
 // detection status, key status slider position start address
 #define QT_STATUS_ADDR	2
 
+// Key signal, key signal and reference start address
+#define QT_SIGNAL_ADDR	52
+
 /* 
 application storage for QT2120 device-status
 
@@ -97,7 +100,7 @@ enum { // QT2120 registers
 	QT_TRD,
 	QT_DHT,
 	QT_SLIDER_OPTION,
-	QT_CHARDE_TIME,
+	QT_CT,
 	QT_KEY0_DTHR,
 	QT_KEY1_DTHR,
 	QT_KEY2_DTHR,

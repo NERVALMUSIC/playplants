@@ -9,6 +9,7 @@ const uint8_t CC = 0xB0;                //<-- Used Midi message types
 
 //Sensor stuf
 AT42QT touch;
+
 #define KEYS        12
 uint8_t TOUCH_INT_flag = false;
 const uint8_t notes[12] = {50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61};

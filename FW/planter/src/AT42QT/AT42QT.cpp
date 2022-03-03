@@ -49,51 +49,6 @@ uint8_t AT42QT::init() {
 }
 
 /*============================================================================
-Name    :   calibrate
-------------------------------------------------------------------------------
-Purpose :   Performs a calibration of the QT device
-============================================================================*/
-uint8_t AT42QT::calibrate() {
-	if(writeReg(QT_CALIBRATE, 1)) return true;
-	return false;
-}
-
-/*============================================================================
-Name    :   reset
-------------------------------------------------------------------------------
-Purpose :   Performs a software reset of the QT device
-============================================================================*/
-uint8_t AT42QT::reset(void)  {
-	if(writeReg(QT_RESET, 1)) return true;
-	return false;
-}
-
-/*============================================================================
-Name    :   writeReg & readReg
-------------------------------------------------------------------------------
-Purpose : Write register 
-============================================================================*/
-uint8_t AT42QT::writeReg(uint8_t regAddr, uint8_t value) {
-	if(write(regAddr, &value, sizeof(value))) {
-		if(regAddr >= QT_SETUPS_BLOCK_ADDR) {
-			*((uint8_t*)(&setup_block)-QT_SETUPS_BLOCK_ADDR+regAddr) = value;
-		}
-		return true;
-	}
-	return false;
-}
-
-uint8_t AT42QT::readReg(uint8_t regAddr) {
-	uint8_t value = 0;
-	if(read(regAddr, &value, sizeof(value))) {
-		if(regAddr >= QT_SETUPS_BLOCK_ADDR) {
-			*((uint8_t*)(&setup_block)-QT_SETUPS_BLOCK_ADDR+regAddr) = value;
-		}
-	}
-	return value;
-}
-
-/*============================================================================
 Name    :   writeSetup & readSetup
 ------------------------------------------------------------------------------
 Purpose : Write and Readsetup register block 
@@ -119,6 +74,175 @@ uint8_t AT42QT::readStatus(void) {
 }
 
 /*============================================================================
+Name    :   getKey
+------------------------------------------------------------------------------
+Purpose :  Read Address 3 or 4 to get Key value
+============================================================================*/
+uint8_t AT42QT::getKey(uint8_t num) {
+	if(num>15) return 0;
+	     if(num < 8)  return bitRead(QtStatus[1], num);
+	else if(num < 16) return bitRead(QtStatus[2], num-8);
+	else return 0;
+}
+
+/*============================================================================
+Name    :   calibrate
+------------------------------------------------------------------------------
+Purpose :   Write Address 6 to perform a calibration
+============================================================================*/
+uint8_t AT42QT::calibrate() {
+	if(writeReg(QT_CALIBRATE, 1)) return true;
+	return false;
+}
+
+/*============================================================================
+Name    :   reset
+------------------------------------------------------------------------------
+Purpose :   Write Address 7 to perform a SW reset
+============================================================================*/
+uint8_t AT42QT::reset(void)  {
+	if(writeReg(QT_RESET, 1)) return true;
+	return false;
+}
+
+/*============================================================================
+Name    :   setLP
+------------------------------------------------------------------------------
+Purpose :  Write Address 8 to set power mode
+============================================================================*/
+
+uint8_t AT42QT::setLP(uint8_t value) {
+	if(writeReg(QT_LP, value)) return true;
+	return false;
+}
+
+/*============================================================================
+Name    :   setTTD
+------------------------------------------------------------------------------
+Purpose :  Write Address 9 to set Toward Touch Drift
+============================================================================*/
+
+uint8_t AT42QT::setTTD(uint8_t value) {
+	if(writeReg(QT_TTD, value)) return true;
+	return false;
+}
+
+/*============================================================================
+Name    :   setATD
+------------------------------------------------------------------------------
+Purpose :  Write Address 10 to set Away Touch Drift
+============================================================================*/
+
+uint8_t AT42QT::setATD(uint8_t value) {
+	if(writeReg(QT_ATD, value)) return true;
+	return false;
+}
+
+/*============================================================================
+Name    :   setDI
+------------------------------------------------------------------------------
+Purpose :  Write Address 11 to set 
+============================================================================*/
+
+uint8_t AT42QT::setDI(uint8_t value) {
+	if(writeReg(QT_DI, value)) return true;
+	return false;
+}
+
+/*============================================================================
+Name    :   setTRD
+------------------------------------------------------------------------------
+Purpose :  Write Address 12 to set 
+============================================================================*/
+
+uint8_t AT42QT::setTRD(uint8_t value) {
+	if(writeReg(QT_TRD, value)) return true;
+	return false;
+}
+
+/*============================================================================
+Name    :   setDHT
+------------------------------------------------------------------------------
+Purpose :  Write Address 13 to set 
+============================================================================*/
+
+uint8_t AT42QT::setDHT(uint8_t value) {
+	if(writeReg(QT_DHT, value)) return true;
+	return false;
+}
+
+/*============================================================================
+Name    :   setCT
+------------------------------------------------------------------------------
+Purpose :  Write Address 15 to set 
+============================================================================*/
+
+uint8_t AT42QT::setCT(uint8_t value) {
+	if(writeReg(QT_CT, value)) return true;
+	return false;
+}
+/*============================================================================
+Name    :   setKeyDTHR
+------------------------------------------------------------------------------
+Purpose :  Write Address 16-27 to set individual key 
+============================================================================*/
+
+void AT42QT::setKeyDTHR(uint8_t num, uint8_t value) {
+	if(num < 12) num += QT_KEY0_DTHR;
+	if(num < QT_KEY0_DTHR || num > QT_KEY11_DTHR) return;
+	writeReg(num, value);
+}
+
+void AT42QT::setKeyDTHR(uint8_t numFrom, uint8_t numTo, uint8_t value) {
+	if(numTo < numFrom) numTo = numFrom;
+	for(uint8_t i=numFrom; i<=numTo; i++) setKeyDTHR(i, value);
+}
+
+/*============================================================================
+Name    :   setKeyPS
+------------------------------------------------------------------------------
+Purpose :  Write Address 40-51 to set individual key 
+============================================================================*/
+
+void AT42QT::setKeyPS(uint8_t num, uint8_t value) {
+	if(num < 12) num += QT_KEY0_PULSE_SCALE;
+	if(num > QT_KEY11_PULSE_SCALE) return;
+	writeReg(num, value);
+}
+
+void AT42QT::setKeyPS(uint8_t numFrom, uint8_t numTo, uint8_t value) {
+	if(numTo < numFrom) numTo = numFrom;
+	for(uint8_t i=numFrom; i<=numTo; i++) setKeyPS(i, value);
+}
+
+/*============================================================================
+Name    :   getKeySignal
+------------------------------------------------------------------------------
+Purpose :  Read Address 52-75 to get Key Signal value
+============================================================================*/
+uint16_t AT42QT::getKeySignal(uint8_t num) {
+	
+	if(num < 12) num = 2*num + QT_KEY0_SIGNAL;
+	if(num > QT_KEY11_SIGNAL) return 0;
+	uint16_t variable = readReg(num) << 8 ;
+	variable |= readReg(num+1);
+	return variable;
+}
+
+/*============================================================================
+Name    :   getKeyReference
+------------------------------------------------------------------------------
+Purpose :  Read Address 76-99 to get Key Reference value
+============================================================================*/
+uint16_t AT42QT::getKeyReference(uint8_t num) {
+	
+	if(num < 12) num = 2*num + QT_KEY0_REFERENCE;
+	if(num > QT_KEY11_REFERENCE) return 0;
+	uint16_t variable = readReg(num) << 8 ;
+	variable |= readReg(num+1);
+	return variable;
+}
+/*============================================================================
 Name    :   IRQ_handler
 ------------------------------------------------------------------------------
 Purpose : External Interrupt from AT42QT
@@ -138,78 +262,30 @@ Purpose :  Print Setup and Status functions
 #ifdef QT_DEBUG
 void AT42QT::printSetup() {
     print("QT setup block info:");
-	
-		print("LP_Mode 	   ", setup_block.LP_Mode);
-		print("TTD  	     ", setup_block.TTD);
-		print("ATD 		 	   ", setup_block.ATD);
-		print("DI 	  	   ", setup_block.DI);
-		print("TRD         ", setup_block.TRD);
-		print("DHT         ", setup_block.DHT);
-		print("reserved		 ", setup_block.slider_reserved);
-		print("wheel_en 	 ", setup_block.slider_wheel_en);
-		print("Slider_en   ", setup_block.slider_en);
-		print("charge_time ", setup_block.charge_time);
-		
-		print("key0_DTHR	 ", &setup_block.key0_DTHR,  12);
-	
-			
-	    print("QT setup block end");
+	print("LP_Mode 	   ", setup_block.LP_Mode);
+	print("TTD  	     ", setup_block.TTD);
+	print("ATD 		 	   ", setup_block.ATD);
+	print("DI 	  	   ", setup_block.DI);
+	print("TRD         ", setup_block.TRD);
+	print("DHT         ", setup_block.DHT);
+	print("reserved		 ", setup_block.slider_reserved);
+	print("wheel_en 	 ", setup_block.slider_wheel_en);
+	print("Slider_en   ", setup_block.slider_en);
+	print("charge_time ", setup_block.charge_time);
+	print("key#_DTHR	 ", &setup_block.key0_DTHR,  12);
+	print("QT setup block end");
 }
 
 void AT42QT::printStatus() {
     print("QT status info:");
-		print("QT_GENERAL_STATUS ", QtStatus[0]);
-		print("QT_KEY_STATUS_1   ", QtStatus[1]);
-		print("QT_KEY_STATUS_2   ", QtStatus[2]);
-		print("QT_SLIDER_POSITION", QtStatus[3]);
-		print("QT_GPIO_READ      ", QtStatus[4]);
+	print("QT_GENERAL_STATUS ", QtStatus[0]);
+	print("QT_KEY_STATUS_1   ", QtStatus[1]);
+	print("QT_KEY_STATUS_2   ", QtStatus[2]);
+	print("QT_SLIDER_POSITION", QtStatus[3]);
+	print("QT_GPIO_READ      ", QtStatus[4]);
     print("QT status end");
 }
 #endif 
-
-/*============================================================================
-Name    :   setKey<something>
-------------------------------------------------------------------------------
-Purpose :  Change individual key setup
-============================================================================*/
-
-void AT42QT::setKeyDTHR(uint8_t num, uint8_t value) {
-	if(num < 12) num += QT_KEY0_DTHR;
-	if(num < QT_KEY0_DTHR || num > QT_KEY11_DTHR) return;
-	*((uint8_t*)(&setup_block)-QT_SETUPS_BLOCK_ADDR+num) = constrain(value, 0, 255);
-}
-
-void AT42QT::setKeyDTHR(uint8_t numFrom, uint8_t numTo, uint8_t value) {
-	if(numTo < numFrom) numTo = numFrom;
-	for(uint8_t i=numFrom; i<=numTo; i++) setKeyDTHR(i, value);
-}
-
-
-
-/*============================================================================
-Name    :   getKey
-------------------------------------------------------------------------------
-Purpose :  get Key value
-============================================================================*/
-uint8_t AT42QT::getKey(uint8_t num) {
-	if(num>15) return 0;
-	     if(num < 8)  return bitRead(QtStatus[1], num);
-	else if(num < 16) return bitRead(QtStatus[2], num-8);
-	else return 0;
-}
-
-/*============================================================================
-Name    :   getKeyMask
-------------------------------------------------------------------------------
-Purpose :  get Key Mask
-============================================================================*/
-uint16_t AT42QT::getKeyMask() {
-	uint16_t value = QtStatus[2];
-	value <<= 8;
-	value |= QtStatus[1];
-	return value;
-}
-
 
 /*=================================PRIVATE====================================*/
 
@@ -221,6 +297,31 @@ Purpose :   Check communication is ready and able to read Chip ID
 uint8_t AT42QT::GetCommsReady(void) {
 
 	return (readReg(QT_CHIP_ID)==QT_DEVICE_ID);
+}
+
+/*============================================================================
+Name    :   writeReg & readReg
+------------------------------------------------------------------------------
+Purpose : Generic Write and read register fucntions
+============================================================================*/
+uint8_t AT42QT::writeReg(uint8_t regAddr, uint8_t value) {
+	if(write(regAddr, &value, sizeof(value))) {
+		if((regAddr >= QT_SETUPS_BLOCK_ADDR) && (regAddr < QT_SIGNAL_ADDR)) {
+			*((uint8_t*)(&setup_block)-QT_SETUPS_BLOCK_ADDR+regAddr) = value;
+		}
+		return true;
+	}
+	return false;
+}
+
+uint8_t AT42QT::readReg(uint8_t regAddr) {
+	uint8_t value = 0;
+	if(read(regAddr, &value, sizeof(value))) {
+		if((regAddr >= QT_SETUPS_BLOCK_ADDR) && (regAddr < QT_SIGNAL_ADDR)) {
+			*((uint8_t*)(&setup_block)-QT_SETUPS_BLOCK_ADDR+regAddr) = value;
+		}
+	}
+	return value;
 }
 
 /*============================================================================

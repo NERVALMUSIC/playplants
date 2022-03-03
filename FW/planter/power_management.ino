@@ -16,7 +16,7 @@ void charge_change(){
 
 void power_off(){
   digitalWrite(POW_EN, LOW);
-  //TO DO: shut down sensor
+  touch.setLP(0);   //Turn Off
   red.Breathe(SLOW).Repeat(1);  
   green.Breathe(SLOW).Repeat(1);  
   blue.Breathe(SLOW).Repeat(1);// SLOW BLINK WHITE

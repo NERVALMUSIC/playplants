@@ -253,40 +253,6 @@ void AT42QT::IRQ_handler(void) {
 	  readStatus();
 }
 
-/*============================================================================
-Name    :   printSetup & printStatus
-------------------------------------------------------------------------------
-Purpose :  Print Setup and Status functions
-============================================================================*/
-
-#ifdef QT_DEBUG
-void AT42QT::printSetup() {
-    print("QT setup block info:");
-	print("LP_Mode 	   ", setup_block.LP_Mode);
-	print("TTD  	     ", setup_block.TTD);
-	print("ATD 		 	   ", setup_block.ATD);
-	print("DI 	  	   ", setup_block.DI);
-	print("TRD         ", setup_block.TRD);
-	print("DHT         ", setup_block.DHT);
-	print("reserved		 ", setup_block.slider_reserved);
-	print("wheel_en 	 ", setup_block.slider_wheel_en);
-	print("Slider_en   ", setup_block.slider_en);
-	print("charge_time ", setup_block.charge_time);
-	print("key#_DTHR	 ", &setup_block.key0_DTHR,  12);
-	print("QT setup block end");
-}
-
-void AT42QT::printStatus() {
-    print("QT status info:");
-	print("QT_GENERAL_STATUS ", QtStatus[0]);
-	print("QT_KEY_STATUS_1   ", QtStatus[1]);
-	print("QT_KEY_STATUS_2   ", QtStatus[2]);
-	print("QT_SLIDER_POSITION", QtStatus[3]);
-	print("QT_GPIO_READ      ", QtStatus[4]);
-    print("QT status end");
-}
-#endif 
-
 /*=================================PRIVATE====================================*/
 
 /*============================================================================
@@ -384,25 +350,3 @@ uint8_t AT42QT::read(uint8_t regAddr, uint8_t* dataPtr, uint8_t dataSize) {
 	}
     return result_lenght;
 }
-
-/*============================================================================
-Name    :   print
-------------------------------------------------------------------------------
-Purpose :  Print via QT_DEBUG
-============================================================================*/
-
-#ifdef QT_DEBUG
-void AT42QT::print(const char* str, uint8_t* valuePtr, uint8_t size) {
-	QT_DEBUG.print(DBG); QT_DEBUG.print(str);
-	if(size) QT_DEBUG.print(" :");
-	for(uint8_t i=0; i<size; i++) {
-		QT_DEBUG.print(" ");
-		QT_DEBUG.print(*(valuePtr + i));
-	} QT_DEBUG.println();
-}
-
-void AT42QT::print(const char* str, uint8_t value)  {
-
-	print(str, &value, 1);
-}
-#endif

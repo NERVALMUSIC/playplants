@@ -7,11 +7,6 @@
 
 #include "QT2120.h"
 
-#ifdef DEBUG
-	#define QT_DEBUG bleSerial
-	#define DBG "[DBG] "
-#endif
-
 /*============================================================================
 Macros
 ============================================================================*/
@@ -29,11 +24,6 @@ class AT42QT {
   
   uint8_t write(uint8_t regAddr, uint8_t* dataPtr = 0, uint8_t dataSize = 0);
   uint8_t read(uint8_t regAddr, uint8_t* dataPtr, uint8_t dataSize);
-  
-#ifdef QT_DEBUG
-  void print(const char* str, uint8_t* valuePtr=0, uint8_t size=0);
-  void print(const char* str, uint8_t value);
-#endif
 
   uint8_t QtStatus[QT_STATUS_SIZE]; // application storage for QT device-status
   
@@ -92,11 +82,6 @@ class AT42QT {
   uint8_t readSetup();
 
   void    IRQ_handler(void);
-
-#ifdef QT_DEBUG
-  void    printSetup();
-  void    printStatus();
-#endif
 
 };
 

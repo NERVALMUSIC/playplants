@@ -15,7 +15,13 @@ void led_update(){
     case 2:     //charging
       if(!red.IsRunning() && !green.IsRunning() && !blue.IsRunning())
       {
-        red.Set(191); green.Set(127); blue.Set(0); //SOLID ORANGE
+        red.Set(127); green.Set(15); blue.Set(0); //SOLID ORANGE
+      }
+      break;
+    case 3:     //charged
+      if(!red.IsRunning() && !green.IsRunning() && !blue.IsRunning())
+      {
+        red.Set(0); green.Set(255); blue.Set(0); //SOLID GREEN
       }
       break;
   }
@@ -28,7 +34,6 @@ void singleclick() {
   if (blePeripheral) {blePeripheral.println("Single click");}
 #endif
     //TO DO: Assign function to single click
-    touch.calibrate();
     red.Off(); green.Breathe(FAST).Repeat(1); blue.Off();  // BLINK GREEN
 } // singleclick 
 

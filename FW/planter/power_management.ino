@@ -10,13 +10,16 @@ void readBattery(){
 }
 
 void charge_change(){
-  if(digitalRead(CHG) == HIGH){connection_state = 2;}
+  if(digitalRead(USB) == HIGH){connection_state = 2;}
   else{connection_state = 0;}
+}
+
+void charge_complete(){
+  connection_state = 3;
 }
 
 void power_off(){
   digitalWrite(POW_EN, LOW);
-  touch.setLP(0);   //Turn Off
   red.Breathe(SLOW).Repeat(1);  
   green.Breathe(SLOW).Repeat(1);  
   blue.Breathe(SLOW).Repeat(1);// SLOW BLINK WHITE

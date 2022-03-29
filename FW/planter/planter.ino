@@ -1,10 +1,10 @@
 #include "src/nRF5x_lowPower/Arduino_nRF5x_lowPower.h"
 #include "src/OneButton/OneButton.h"
 #include "src/jled/jled.h"
-#include "src/AT42QT/AT42QT.h"
 #include "nrf52.h"
 #include "src/BLESerial/BLESerial.h"
 #include <BLEPeripheral.h>
+#include "src/MPR121/MPR121.h"
 #include "thisplanter.h"
 
 void setup()
@@ -22,12 +22,14 @@ void setup()
   but.attachDoubleClick(doubleclick);
   but.attachLongPressStop(longPressStop);
   nRF5x_lowPower.enableWakeupByInterrupt(BUTTON_PIN, FALLING);
-  nRF5x_lowPower.enableWakeupByInterrupt(CHG, FALLING);
+  nRF5x_lowPower.enableWakeupByInterrupt(USB, RISING);
   //setup battery manager
   analogReference(AR_VDD4);   // Full adc range (0 - VDD)
   pinMode(POW_EN, OUTPUT);    // sets power enable as Output
+  pinMode(USB, INPUT);        // sets charge detect pin as Input
   pinMode(CHG, INPUT);        // sets charge detect pin as Input
-  attachInterrupt(digitalPinToInterrupt(CHG), charge_change, CHANGE);
+  attachInterrupt(digitalPinToInterrupt(USB), charge_change, CHANGE);
+  attachInterrupt(digitalPinToInterrupt(CHG), charge_complete, RISING);
   charge_change();
   readBattery();
   
@@ -45,22 +47,10 @@ void setup()
   blePeripheral.begin();                                  //Initialize de periferal
 
   //Setup Sensor
-  pinMode(INT, INPUT_PULLUP);        // sets interrupt pin as Input
-  touch.begin();
-  
-  touch.reset();
-  delay(100);
-  touch.init();
-  delay(100);
-  //touch.setTTD(64);
-  //touch.setATD(16);
-  //touch.setDI(12);
-  //touch.TRD(0);   //0 Disabled, 255 = 40 s
-  //touch.setDHT(0);
-  touch.setCT(255);
-  //touch.setKeyDTHR(0, 11, 1);
-  touch.setKeyPS(0,11, 84);
-  attachInterrupt(INT, TOUCH_interrupt, CHANGE);
+  if(!MPR121.begin(I2CADDR,TOUCH, RELEASE, INT)){
+    power_off();
+  }
+  MPRconfig();
 }
 
 void loop()
@@ -69,25 +59,4 @@ void loop()
   led_update();
   Sensormanager();
   BLEmanager();
-}
-
-//Poll the sensor inputs and convert any relevant data to midi format
-void Sensormanager(){
-  if(TOUCH_INT_flag) {
-    for( int k = 0; k < KEYS; k++)
-    { 
-      touching[k] = touch.getKey(k);
-      if((lastouch[k] != touching[k]) && touching[k]){newtouch[k] = true;}
-      if((lastouch[k] != touching[k]) && !touching[k]){newrelease[k] = true;}
-      lastouch[k] = touching[k];
-    }
-    TOUCH_INT_flag = false;
-  }
-}
-
-// This function will be called when a sensor is touched.
-void TOUCH_interrupt() { 
-  touch.IRQ_handler();
-  red.Off(); green.Breathe(FAST).Repeat(1); blue.Off();  // BLINK GREEN
-  TOUCH_INT_flag = true; 
 }

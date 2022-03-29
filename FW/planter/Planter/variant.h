@@ -58,7 +58,8 @@ extern "C"
 
 // Digital I/O
 #define CHG             03    // Charge indication
-#define BUTTON_PIN      04    // User button
+#define USB      		04    // USB connected indication
+#define BUTTON_PIN      29    // User button
 #define POW_EN          05    // Enable battery readings
 #define INT             06    // Sensor Interrupt pin
 
@@ -85,8 +86,8 @@ extern "C"
  */
 #define WIRE_INTERFACES_COUNT 1
 
-#define PIN_WIRE_SDA         (0) // P0.00
-#define PIN_WIRE_SCL         (1) // P0.01
+#define PIN_WIRE_SCL         (0) // P0.00
+#define PIN_WIRE_SDA         (1) // P0.01
 
 static const uint8_t SDA = PIN_WIRE_SDA;
 static const uint8_t SCL = PIN_WIRE_SCL;

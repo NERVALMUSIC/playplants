@@ -8,15 +8,16 @@ const uint8_t NOTE_ON = 0x90;           //<-- Used Midi message types
 const uint8_t CC = 0xB0;                //<-- Used Midi message types
 
 //Sensor stuf
-AT42QT touch;
-
-#define KEYS        12
-uint8_t TOUCH_INT_flag = false;
+#define I2CADDR 0x5A
+#define CHANN 5
+#define TOUCH 20
+#define RELEASE 15
+#define SENSORS 12 
+mpr121_proxmode_type  prox_mode = PROX_DISABLED; //PROX_DISABLED PROX_0_1 PROX_0_3 PROX_0_11 (no proximidad, 2 sensores, 4 sensores, 12 sensores)
 const uint8_t notes[12] = {50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61};
-bool touching[12] = {false, false, false, false, false, false, false, false, false, false, false, false};
-bool lastouch[12] = {false, false, false, false, false, false, false, false, false, false, false, false};
 bool newtouch[12] = {false, false, false, false, false, false, false, false, false, false, false, false};
 bool newrelease[12] = {false, false, false, false, false, false, false, false, false, false, false, false};
+
 
 
 //Radio stuff

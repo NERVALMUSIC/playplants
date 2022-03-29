@@ -9,7 +9,7 @@ void BLEmanager()
   if (central && central.connected()) {
     if(connection_state == 0){connection_state = 1;}
 #endif
-    for( int k = 0; k < KEYS; k++){
+    for( int k = 0; k < SENSORS; k++){
       if(newrelease[k]){
         Send_MIDI_BLE(1, NOTE_OFF, notes[k], 0);
         newrelease[k] = false;

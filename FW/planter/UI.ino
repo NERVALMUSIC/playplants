@@ -41,7 +41,8 @@ void led_update(){
 void singleclick() {
     //TO DO: Assign function to single click
     red.Off(); green.Breathe(FAST).Repeat(1); blue.Breathe(FAST).Repeat(1);  // BLINK Purple
-    MPR121.reset();   //Reset the Sensor
+    MPR121.begin(I2CADDR, TOUCH, RELEASE, INT);
+    MPRconfig();
 } // singleclick 
 
 // This function will be called when the button was pressed 2 times in a short timeframe.

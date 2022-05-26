@@ -25,9 +25,12 @@ void MPRconfig(){
   //MPR121.autoSetElectrodeCDC();
   MPR121.setGlobalCDC(52);
   MPR121.setGlobalCDT(CDT_2US);
-  MPR121.setFFI(FFI_34);
-  MPR121.setSamplePeriod(SAMPLE_INTERVAL_8MS);
-  MPR121.setSFI(SFI_18);
+  MPR121.setFFI(FFI_6);
+  MPR121.setSamplePeriod(SAMPLE_INTERVAL_1MS);
+  MPR121.setSFI(SFI_4);
+  //for (int i = 0; i < SENSORS; i++) {
+  //  notes[i] = LOWEST + i;
+  //}
   delay(200);
 }
 
@@ -36,15 +39,14 @@ void Sensormanager(){
   MPR121.updateAll();
   for (int i = 0; i < SENSORS; i++) {
     if (MPR121.isNewTouch(i)) {
-      newtouch[i] = true;
       touching[i] = true;
       constrain(sensed += 20,0,255);
-
+      Send_MIDI_BLE(CHANN, NOTE_ON, notes[i], velocity[i]);
     } 
     else if (MPR121.isNewRelease(i)) {
-      newrelease[i] = true;
       touching[i] = false;
       constrain(sensed -= 20,0,255);
+      Send_MIDI_BLE(CHANN, NOTE_OFF, notes[i], 0);
     }
     if (touching)
     {

@@ -1,7 +1,3 @@
-
-//Uncomment for BLE-SERIAL (comment for BLE-MIDI)
-//#define DEBUG
-
 //MIDI Stuff
 const uint8_t NOTE_OFF = 0x80;          //<-- Used Midi message types
 const uint8_t NOTE_ON = 0x90;           //<-- Used Midi message types
@@ -9,15 +5,27 @@ const uint8_t CC = 0xB0;                //<-- Used Midi message types
 
 //Sensor stuf
 #define I2CADDR 0x5A
-#define CHANN 5
-#define TOUCH 20
-#define RELEASE 15
+uint8_t CHANN = 2;
+uint8_t TOUCH = 10;
+uint8_t RELEASE = 5;
 #define SENSORS 12 
+#define SATVAL -100
+#define WINDOW 25
 mpr121_proxmode_type  prox_mode = PROX_DISABLED; //PROX_DISABLED PROX_0_1 PROX_0_3 PROX_0_11 (no proximidad, 2 sensores, 4 sensores, 12 sensores)
-const uint8_t notes[12] = {50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61};
-bool newtouch[12] = {false, false, false, false, false, false, false, false, false, false, false, false};
-bool newrelease[12] = {false, false, false, false, false, false, false, false, false, false, false, false};
-
+uint8_t notes[SENSORS] = {50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61};
+//variables for touch detection
+bool newtouch[SENSORS];
+bool newrelease[SENSORS];
+bool touching[SENSORS];
+//variables for velocity data
+int16_t raw[SENSORS];
+int16_t maxdiff[SENSORS];
+int16_t mindiff[SENSORS];
+uint8_t velocity[SENSORS];
+//variables for filtered data
+int16_t filtered_data[SENSORS];
+uint8_t windowCount[SENSORS];
+uint8_t velocity_filt[SENSORS];
 
 
 //Radio stuff
@@ -37,13 +45,14 @@ unsigned long msOffset = 0;
 //HW stuff
 int bat_adc = 0;
 bool charge_state = false;
-int connection_state = 0;    //0: Adversising, 1: Connected, 2: Charging
+int connection_state = 0;    //0: Adversising, 1: Connected, 2: Charging, 3: Charged
 #define BAT_LOW       835
 #define BAT_HIGH      930
 
 //User Interface
-#define SLOW    2000
+#define SLOW    1000
 #define FAST    250
+uint8_t sensed = 0;
 auto red = JLed(RED_LED).Off().LowActive();
 auto green = JLed(GRN_LED).Off().LowActive();
 auto blue = JLed(BLU_LED).Off().LowActive();

@@ -10,16 +10,13 @@ void readBattery(){
 }
 
 void charge_change(){
-  if(digitalRead(USB) == HIGH){connection_state = 2;}
+  if(digitalRead(CHG) == HIGH && digitalRead(USB) == HIGH){connection_state = 3;}
+  else if(digitalRead(CHG) == LOW && digitalRead(USB) == HIGH){connection_state = 2;}
   else{connection_state = 0;}
 }
 
-void charge_complete(){
-  connection_state = 3;
-}
-
 void power_off(){
-  digitalWrite(POW_EN, LOW);
+  MPR121.stop();
   red.Breathe(SLOW).Repeat(1);  
   green.Breathe(SLOW).Repeat(1);  
   blue.Breathe(SLOW).Repeat(1);// SLOW BLINK WHITE
@@ -27,5 +24,6 @@ void power_off(){
   pinMode(RED_LED, INPUT_PULLUP);
   pinMode(GRN_LED, INPUT_PULLUP);
   pinMode(BLU_LED, INPUT_PULLUP);
+  digitalWrite(POW_EN, LOW);
   nRF5x_lowPower.powerMode(POWER_MODE_OFF);     //Power off if long press has been detected
 }

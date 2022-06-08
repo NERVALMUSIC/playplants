@@ -30,6 +30,7 @@ void MPRconfig(){
   MPR121.setSFI(SFI_4);
   for (int i = 0; i < SENSORS; i++) {
     notes[i] = LOWEST + i;
+    CCnotes[i] = CCNOTE + i;
   }
   delay(200);
 }
@@ -41,14 +42,13 @@ void Sensormanager(){
     if (MPR121.isNewTouch(i)) {
       touching[i] = true;
       constrain(sensed += 20,0,255);
-      Send_MIDI_BLE(CHANN, NOTE_ON, notes[i], velocity[i]);
     } 
     else if (MPR121.isNewRelease(i)) {
       touching[i] = false;
       constrain(sensed -= 20,0,255);
       Send_MIDI_BLE(CHANN, NOTE_OFF, notes[i], 0);
     }
-    if (touching)
+    if (touching[i])
     {
       int16_t diff = MPR121.getFilteredData(i)-MPR121.getBaselineData(i);
       raw[i] = diff;      
@@ -59,12 +59,16 @@ void Sensormanager(){
       if(windowCount[i] == WINDOW){
         velocity_filt[i] = filtered_data[i] / WINDOW;
         windowCount[i] = 0;
-        filtered_data[i] = 0; 
+        filtered_data[i] = 0;
+        Send_MIDI_BLE(CHANN, CC, notes[i], velocity_filt[i]);
       }
       else{
         filtered_data[i] = filtered_data[i] + velocity[i];
         windowCount[i] += 1;
       }
+    }
+    if(MPR121.isNewTouch(i)){
+      Send_MIDI_BLE(CHANN, NOTE_ON, notes[i], velocity[i]);
     }
   }
 }

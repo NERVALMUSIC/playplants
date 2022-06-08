@@ -4,7 +4,7 @@ void BLEmanager()
   if (central && central.connected()) {
     if (connection_state != 1) {connection_state = 1;}
     if (characteristic.written()) {
-      Get_MIDI_BLE();
+      process_package();
     }
   }
   else {
@@ -23,7 +23,7 @@ void Send_MIDI_BLE(uint8_t channel, uint8_t status_Byte, uint8_t note, uint8_t v
   characteristic.setValue(msgBuf, 5);
 }
 
-void Get_MIDI_BLE()
+void process_package()
 {
     //Receive the written packet and parse it out here.
     uint8_t * buffer = (uint8_t*)characteristic.value();
@@ -32,15 +32,19 @@ void Get_MIDI_BLE()
     //Pointers used to search through payload.
     uint8_t lPtr = 0;
     uint8_t rPtr = 0;
-    //lastStatus used to capture runningStatus 
-    uint8_t lastStatus;
+    
     //Decode first packet -- SHALL be "Full MIDI message"
     lPtr = 2; //Start at first MIDI status -- SHALL be "MIDI status"
+    
+    //Variables to send once the buffer is read
+    uint8_t status;
+    uint8_t data1;
+    uint8_t data2;
+    
     //While statement contains incrementing pointers and breaks when buffer size exceeded.
     while(1){
-        lastStatus = buffer[lPtr];
-        if( (buffer[lPtr] < 0x80) ){
-            //Status message not present, bail
+        status = buffer[lPtr];
+        if( (status < 0x80) ){ //Status message not present, bail without sending MIDI message
             return;
         }
         //Point to next non-data byte
@@ -50,46 +54,28 @@ void Get_MIDI_BLE()
         }
         //look at l and r pointers and decode by size.
         if( rPtr - lPtr < 1 ){
-            //Time code or system
-            transmitMIDIonDIN( lastStatus, 0, 0 );
-        } else if( rPtr - lPtr < 2 ) {
-            transmitMIDIonDIN( lastStatus, buffer[lPtr + 1], 0 );
-        } else if( rPtr - lPtr < 3 ) {
-            transmitMIDIonDIN( lastStatus, buffer[lPtr + 1], buffer[lPtr + 2] );
-        } else {
-            //Too much data
-            //If not System Common or System Real-Time, send it as running status
-            switch( buffer[lPtr] & 0xF0 )
-            {
-            case 0x80:
-            case 0x90:
-            case 0xA0:
-            case 0xB0:
-            case 0xE0:
-                for(int i = lPtr; i < rPtr; i = i + 2){
-                    transmitMIDIonDIN( lastStatus, buffer[i + 1], buffer[i + 2] );
-                }
-                break;
-            case 0xC0:
-            case 0xD0:
-                for(int i = lPtr; i < rPtr; i = i + 1){
-                    transmitMIDIonDIN( lastStatus, buffer[i + 1], 0 );
-                }
-                break;
-            default:
-                break;
-            }
+          data1 = 0;
+          data2 = 0;
+        } 
+        else if( rPtr - lPtr < 2 ) {
+          data1 = buffer[lPtr + 1];
+          data2 = 0;
+        } 
+        else if( rPtr - lPtr < 3 ) {
+          data1 = buffer[lPtr + 1];
+          data2 = buffer[lPtr + 2];
         }
         //Point to next status
         lPtr = rPtr + 2;
-        if(lPtr >= bufferSize){
-            //end of packet
+        if(lPtr >= bufferSize){ //Send last midi message received
+            Get_MIDI_BLE( status, data1, data2);
+            red.Off(); green.Breathe(FAST).Repeat(1); blue.Breathe(FAST).Repeat(1);  // BLINK Purple
             return;
         }
     }
 }
 
-void transmitMIDIonDIN( uint8_t status, uint8_t data1, uint8_t data2 )
+void Get_MIDI_BLE( uint8_t status, uint8_t data1, uint8_t data2 )
 {
   uint8_t channel = status & 0x0F;
   channel++;
@@ -97,14 +83,9 @@ void transmitMIDIonDIN( uint8_t status, uint8_t data1, uint8_t data2 )
   switch (command)
   {
     case 0x08: //Note off
-      break;
-    case 0x09: //Note on
       if(channel > 0 && channel <= 12){
         notes[channel] = data1;
-        red.Off(); green.Breathe(FAST).Repeat(1); blue.Breathe(FAST).Repeat(1);  // BLINK Purple
       }
-      break;
-    case 0x0A: //Polyphonic Pressure
       break;
     case 0x0B: //Control Change
       switch (data1)
@@ -112,16 +93,15 @@ void transmitMIDIonDIN( uint8_t status, uint8_t data1, uint8_t data2 )
         case 0x66: //CC 102
         if(data2 > 0 && data2 <= 16){
           CHANN = data2; 
-          red.Off(); green.Breathe(FAST).Repeat(1); blue.Breathe(FAST).Repeat(1);  // BLINK Purple
         }
         break;
         case 0x67: //CC 103
-        TOUCH = map(data2,0,127,5,60);
-        red.Off(); green.Breathe(FAST).Repeat(1); blue.Breathe(FAST).Repeat(1);  // BLINK Purple
+        TOUCH = map(data2,0,127,2,100);
+        RELEASE = map(data2,0,127,1,60);
+        MPR121.setTouchThreshold(TOUCH);
+        MPR121.setReleaseThreshold(RELEASE);
         break;
         case 0x68: //CC 104
-        RELEASE = map(data2,0,127,2,50);
-        red.Off(); green.Breathe(FAST).Repeat(1); blue.Breathe(FAST).Repeat(1);  // BLINK Purple
         break;
         case 0x69: //CC 105
         break;
@@ -147,40 +127,6 @@ void transmitMIDIonDIN( uint8_t status, uint8_t data1, uint8_t data2 )
         break;
         case 0x74: //CC 116
         break;
-        case 0x75: //CC 117
-        break;
-        case 0x76: //CC 118
-        break;
-        case 0x77: //CC 119
-        break;
-      }
-      break;
-    case 0x0C: //Program Change
-      break;
-    case 0x0D: //Channel Pressure
-      break;
-    case 0x0E: //Pitch Bend
-      break;
-    case 0x0F: //System
-      switch (status)
-      {
-        case 0xF1: //MTC Q frame
-          break;
-        case 0xF2: //Song position
-          break;
-        case 0xF3: //Song select
-          break;
-        case 0xF6: //Tune request
-          break;
-        case 0xF8: //Timing Clock
-        case 0xFA: //Start
-        case 0xFB: //Continue
-        case 0xFC: //Stop
-        case 0xFE: //Active Sensing
-        case 0xFF: //Reset
-          break;
-        default:
-          break;
       }
       break;
     default:

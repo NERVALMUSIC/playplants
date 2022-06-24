@@ -5,14 +5,14 @@ const uint8_t CC = 0xB0;                //<-- Used Midi message types
 
 //Sensor stuf
 #define I2CADDR 0x5A
-uint8_t CHANN = 5;
+uint8_t CHANN = 6;
 uint8_t TOUCH = 20;
 uint8_t RELEASE = 10;
 #define SENSORS 12 
 #define LOWEST 60
 #define CCNOTE 65
 int16_t SATVAL = -200;
-#define WINDOW 25
+uint8_t WINDOW = 25;
 mpr121_proxmode_type  prox_mode = PROX_DISABLED; //PROX_DISABLED PROX_0_1 PROX_0_3 PROX_0_11 (no proximidad, 2 sensores, 4 sensores, 12 sensores)
 uint8_t notes[SENSORS];
 uint8_t CCnotes[SENSORS];

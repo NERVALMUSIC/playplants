@@ -10,7 +10,6 @@
 void setup()
 {  
   //Memory setup
-/*
   if (!bond.hasData()){
     for (int i = 0; i < SENSORS; i++) {
       params[i] = notes[i];
@@ -31,7 +30,6 @@ void setup()
   RELEASE = params[14];
   SATVAL = params[15];
   WINDOW = params[16];
-*/
   
   //Setup led
   red.Off();

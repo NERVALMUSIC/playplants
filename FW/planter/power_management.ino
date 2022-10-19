@@ -16,7 +16,6 @@ void charge_change(){
 }
 
 void power_off(){
-  /*
   //memory update
   if(update){
     for (int i = 0; i < SENSORS; i++) {
@@ -29,7 +28,6 @@ void power_off(){
     params[16] = char(WINDOW);
     bond.putData(params,0,STORED);
   }
-  */
   MPR121.stop();
   red.Breathe(SLOW).Repeat(1);  
   green.Breathe(SLOW).Repeat(1);  

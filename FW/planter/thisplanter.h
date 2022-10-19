@@ -1,20 +1,26 @@
+//#define DEBUG
+
 //MIDI Stuff
 const uint8_t NOTE_OFF = 0x80;          //<-- Used Midi message types
 const uint8_t NOTE_ON = 0x90;           //<-- Used Midi message types
 const uint8_t CC = 0xB0;                //<-- Used Midi message types
 
 //Sensor stuf
-#define I2CADDR 0x5A
-uint8_t CHANN = 6;
+#define I2CADDR 0x5A    //I2C address of sensor
+#define SENSORS 12      //number of enabled sensors
+#define CCNOTE 0        //Starting CC command
+#define STORED 17        //CHANN + TOUCH + RELEASE + SATVAL + WINDOW
+bool update = false;    //modified if stored values are changed in runtime
+//Stored variables
+uint8_t notes[SENSORS]= {48,60,64,67,41,60,65,69,43,59,62,67};  //C chords - {48,60,64,67,41,60,65,69,43,59,62,67};
+uint8_t CHANN = 1;
 uint8_t TOUCH = 20;
 uint8_t RELEASE = 10;
-#define SENSORS 12 
-#define LOWEST 60
-#define CCNOTE 65
-int16_t SATVAL = -200;
+uint8_t SATVAL = -200;
 uint8_t WINDOW = 25;
+unsigned char params[17];
+//Runtime variables
 mpr121_proxmode_type  prox_mode = PROX_DISABLED; //PROX_DISABLED PROX_0_1 PROX_0_3 PROX_0_11 (no proximidad, 2 sensores, 4 sensores, 12 sensores)
-uint8_t notes[SENSORS];
 uint8_t CCnotes[SENSORS];
 //variables for touch detection
 bool newtouch[SENSORS];
@@ -32,6 +38,7 @@ uint8_t velocity_filt[SENSORS];
 
 
 //Radio stuff
+  BLEBondStore bond = BLEBondStore(0);
 #ifdef DEBUG
   BLESerial blePeripheral;
 #else

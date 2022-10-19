@@ -29,7 +29,6 @@ void MPRconfig(){
   MPR121.setSamplePeriod(SAMPLE_INTERVAL_1MS);
   MPR121.setSFI(SFI_4);
   for (int i = 0; i < SENSORS; i++) {
-    notes[i] = LOWEST + i;
     CCnotes[i] = CCNOTE + i;
   }
   delay(200);

@@ -16,6 +16,20 @@ void charge_change(){
 }
 
 void power_off(){
+  /*
+  //memory update
+  if(update){
+    for (int i = 0; i < SENSORS; i++) {
+      params[i] = char(notes[i]);
+    }
+    params[12] = char(CHANN);
+    params[13] = char(TOUCH);
+    params[14] = char(RELEASE);
+    params[15] = char(SATVAL);
+    params[16] = char(WINDOW);
+    bond.putData(params,0,STORED);
+  }
+  */
   MPR121.stop();
   red.Breathe(SLOW).Repeat(1);  
   green.Breathe(SLOW).Repeat(1);  

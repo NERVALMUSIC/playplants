@@ -58,28 +58,6 @@ class MyAppState extends State<MyApp> {
       return;
     }
 
-    await showDialog<void>(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text(
-              'Please Grant Bluetooth Permissions to discover BLE MIDI Devices.'),
-          content: const Text(
-              'In the next dialog we might ask you for bluetooth permissions.\n'
-              'Please grant permissions to make bluetooth MIDI possible.'),
-          actions: <Widget>[
-            TextButton(
-              child: const Text('Ok. I got it!'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
-        );
-      },
-    );
-
     _didAskForBluetoothPermissions = true;
 
     return;

@@ -289,13 +289,13 @@ class MidiControlsState extends State<MidiControls> {
               controller: 102,
               value: int.parse(_channel.text),
             ).send();
-            sleep(const Duration(milliseconds: 100));
+            sleep(const Duration(milliseconds: 500));
             CCMessage(
               channel: int.parse(_channel.text),
               controller: 103,
               value: _sensitivity.round().toInt(),
             ).send();
-            sleep(const Duration(milliseconds: 100));
+            sleep(const Duration(milliseconds: 500));
           }
           if (_e1.text.isNotEmpty) {
             NoteOffMessage(
@@ -303,6 +303,7 @@ class MidiControlsState extends State<MidiControls> {
               note: int.parse(_e1.text),
               velocity: 0,
             ).send();
+            sleep(const Duration(milliseconds: 500));
           }
           if (_e2.text.isNotEmpty) {
             NoteOffMessage(
@@ -310,6 +311,7 @@ class MidiControlsState extends State<MidiControls> {
               note: int.parse(_e2.text),
               velocity: 0,
             ).send();
+            sleep(const Duration(milliseconds: 500));
           }
           if (_e3.text.isNotEmpty) {
             NoteOffMessage(
@@ -317,6 +319,7 @@ class MidiControlsState extends State<MidiControls> {
               note: int.parse(_e3.text),
               velocity: 0,
             ).send();
+            sleep(const Duration(milliseconds: 500));
           }
           if (_e4.text.isNotEmpty) {
             NoteOffMessage(
@@ -324,6 +327,7 @@ class MidiControlsState extends State<MidiControls> {
               note: int.parse(_e4.text),
               velocity: 0,
             ).send();
+            sleep(const Duration(milliseconds: 500));
           }
           if (_e5.text.isNotEmpty) {
             NoteOffMessage(
@@ -331,6 +335,7 @@ class MidiControlsState extends State<MidiControls> {
               note: int.parse(_e5.text),
               velocity: 0,
             ).send();
+            sleep(const Duration(milliseconds: 500));
           }
           if (_e6.text.isNotEmpty) {
             NoteOffMessage(
@@ -338,6 +343,7 @@ class MidiControlsState extends State<MidiControls> {
               note: int.parse(_e6.text),
               velocity: 0,
             ).send();
+            sleep(const Duration(milliseconds: 500));
           }
           if (_e7.text.isNotEmpty) {
             NoteOffMessage(
@@ -345,6 +351,7 @@ class MidiControlsState extends State<MidiControls> {
               note: int.parse(_e7.text),
               velocity: 0,
             ).send();
+            sleep(const Duration(milliseconds: 500));
           }
           if (_e8.text.isNotEmpty) {
             NoteOffMessage(
@@ -352,6 +359,7 @@ class MidiControlsState extends State<MidiControls> {
               note: int.parse(_e8.text),
               velocity: 0,
             ).send();
+            sleep(const Duration(milliseconds: 500));
           }
           if (_e9.text.isNotEmpty) {
             NoteOffMessage(
@@ -359,6 +367,7 @@ class MidiControlsState extends State<MidiControls> {
               note: int.parse(_e9.text),
               velocity: 0,
             ).send();
+            sleep(const Duration(milliseconds: 500));
           }
           if (_e10.text.isNotEmpty) {
             NoteOffMessage(
@@ -366,6 +375,7 @@ class MidiControlsState extends State<MidiControls> {
               note: int.parse(_e10.text),
               velocity: 0,
             ).send();
+            sleep(const Duration(milliseconds: 500));
           }
           if (_e11.text.isNotEmpty) {
             NoteOffMessage(
@@ -373,6 +383,7 @@ class MidiControlsState extends State<MidiControls> {
               note: int.parse(_e11.text),
               velocity: 0,
             ).send();
+            sleep(const Duration(milliseconds: 500));
           }
           if (_e12.text.isNotEmpty) {
             NoteOffMessage(
@@ -380,6 +391,7 @@ class MidiControlsState extends State<MidiControls> {
               note: int.parse(_e12.text),
               velocity: 0,
             ).send();
+            sleep(const Duration(milliseconds: 500));
           }
           showDialog(
             context: context,

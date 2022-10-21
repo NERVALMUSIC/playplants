@@ -1,115 +1,198 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_midi_command/flutter_midi_command.dart';
+import 'controller.dart';
 
-void main() {
-  runApp(const MyApp());
-}
+void main() => runApp(MyApp());
 
-class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
-
-  // This widget is the root of your application.
+class MyApp extends StatefulWidget {
   @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // Try running your application with "flutter run". You'll see the
-        // application has a blue toolbar. Then, without quitting the app, try
-        // changing the primarySwatch below to Colors.green and then invoke
-        // "hot reload" (press "r" in the console where you ran "flutter run",
-        // or simply save your changes to "hot reload" in a Flutter IDE).
-        // Notice that the counter didn't reset back to zero; the application
-        // is not restarted.
-        primarySwatch: Colors.blue,
-      ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
-    );
-  }
+  MyAppState createState() => MyAppState();
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({Key? key, required this.title}) : super(key: key);
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
-  final String title;
+class MyAppState extends State<MyApp> {
+  StreamSubscription<String>? _setupSubscription;
+  StreamSubscription<BluetoothState>? _bluetoothStateSubscription;
+  final MidiCommand _midiCommand = MidiCommand();
 
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
-}
+  void initState() {
+    super.initState();
 
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
+    _setupSubscription = _midiCommand.onMidiSetupChanged?.listen((data) async {
+      setState(() {});
+    });
 
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
+    _bluetoothStateSubscription =
+        _midiCommand.onBluetoothStateChanged.listen((data) {
+      setState(() {});
     });
   }
 
+  bool _didAskForBluetoothPermissions = false;
+
   @override
-  Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
-    return Scaffold(
-      appBar: AppBar(
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
-      ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Invoke "debug painting" (press "p" in the console, choose the
-          // "Toggle Debug Paint" action from the Flutter Inspector in Android
-          // Studio, or the "Toggle Debug Paint" command in Visual Studio Code)
-          // to see the wireframe for each widget.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const Text(
-              'You have pushed the button this many times:',
-            ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headline4,
+  void dispose() {
+    _setupSubscription?.cancel();
+    _bluetoothStateSubscription?.cancel();
+    super.dispose();
+  }
+
+  IconData _deviceIconForType(String type) {
+    switch (type) {
+      case "native":
+        return Icons.devices;
+      case "network":
+        return Icons.language;
+      case "BLE":
+        return Icons.bluetooth;
+      default:
+        return Icons.device_unknown;
+    }
+  }
+
+  Future<void> _informUserAboutBluetoothPermissions(
+      BuildContext context) async {
+    if (_didAskForBluetoothPermissions) {
+      return;
+    }
+
+    await showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text(
+              'Please Grant Bluetooth Permissions to discover BLE MIDI Devices.'),
+          content: const Text(
+              'In the next dialog we might ask you for bluetooth permissions.\n'
+              'Please grant permissions to make bluetooth MIDI possible.'),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Ok. I got it!'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
             ),
           ],
+        );
+      },
+    );
+
+    _didAskForBluetoothPermissions = true;
+
+    return;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      home: Scaffold(
+        appBar: AppBar(
+          title: const Text('Planter'),
+          actions: <Widget>[
+            Builder(builder: (context) {
+              return IconButton(
+                  onPressed: () async {
+                    // Ask for bluetooth permissions
+                    await _informUserAboutBluetoothPermissions(context);
+
+                    // Start bluetooth
+                    await _midiCommand.startBluetoothCentral();
+
+                    await _midiCommand.waitUntilBluetoothIsInitialized();
+
+                    // If bluetooth is powered on, start scanning
+                    if (_midiCommand.bluetoothState ==
+                        BluetoothState.poweredOn) {
+                      _midiCommand
+                          .startScanningForBluetoothDevices()
+                          .catchError((err) {});
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                        content: Text('Scanning for bluetooth devices ...'),
+                      ));
+                    } else {
+                      final messages = {
+                        BluetoothState.unsupported:
+                            'Bluetooth is not supported on this device.',
+                        BluetoothState.poweredOff:
+                            'Please switch on bluetooth and try again.',
+                        BluetoothState.poweredOn: 'Everything is fine.',
+                        BluetoothState.resetting:
+                            'Currently resetting. Try again later.',
+                        BluetoothState.unauthorized:
+                            'This app needs bluetooth permissions. Please open settings, find your app and assign bluetooth access rights and start your app again.',
+                        BluetoothState.unknown:
+                            'Bluetooth is not ready yet. Try again later.',
+                        BluetoothState.other:
+                            'This should never happen. Please inform the developer of your app.',
+                      };
+                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                        backgroundColor: Colors.red,
+                        content: Text(messages[_midiCommand.bluetoothState] ??
+                            'Unknown bluetooth state: ${_midiCommand.bluetoothState}'),
+                      ));
+                    }
+                    // If not show a message telling users what to do
+                    setState(() {});
+                  },
+                  icon: const Icon(Icons.refresh));
+            }),
+          ],
+        ),
+        bottomNavigationBar: Container(
+          padding: const EdgeInsets.all(24.0),
+          child: const Text(
+            "Tap to connnect/disconnect, long press to control.",
+            textAlign: TextAlign.center,
+          ),
+        ),
+        body: Center(
+          child: FutureBuilder(
+            future: _midiCommand.devices,
+            builder: (BuildContext context, AsyncSnapshot snapshot) {
+              if (snapshot.hasData && snapshot.data != null) {
+                var devices = snapshot.data as List<MidiDevice>;
+                return ListView.builder(
+                  itemCount: devices.length,
+                  itemBuilder: (context, index) {
+                    MidiDevice device = devices[index];
+
+                    return ListTile(
+                      title: Text(
+                        device.name,
+                        style: Theme.of(context).textTheme.headline5,
+                      ),
+                      subtitle: Text(
+                          "ins:${device.inputPorts.length} outs:${device.outputPorts.length}"),
+                      leading: Icon(device.connected
+                          ? Icons.radio_button_on
+                          : Icons.radio_button_off),
+                      trailing: Icon(_deviceIconForType(device.type)),
+                      onLongPress: () {
+                        _midiCommand.stopScanningForBluetoothDevices();
+                        Navigator.of(context).push(MaterialPageRoute<void>(
+                          builder: (_) => ControllerPage(device),
+                        ));
+                      },
+                      onTap: () {
+                        if (device.connected) {
+                          _midiCommand.disconnectDevice(device);
+                        } else {
+                          _midiCommand.connectToDevice(device);
+                        }
+                      },
+                    );
+                  },
+                );
+              } else {
+                return const CircularProgressIndicator();
+              }
+            },
+          ),
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
 }

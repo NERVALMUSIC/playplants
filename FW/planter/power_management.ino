@@ -19,13 +19,13 @@ void power_off(){
   //memory update
   if(update){
     for (int i = 0; i < SENSORS; i++) {
-      params[i] = char(notes[i]);
+      params[i] = notes[i];
     }
-    params[12] = char(CHANN);
-    params[13] = char(TOUCH);
-    params[14] = char(RELEASE);
-    params[15] = char(SATVAL);
-    params[16] = char(WINDOW);
+    params[12] = CHANN;
+    params[13] = TOUCH;
+    params[14] = RELEASE;
+    params[15] = SATVAL;
+    params[16] = WINDOW;
     bond.putData(params,0,STORED);
   }
   MPR121.stop();

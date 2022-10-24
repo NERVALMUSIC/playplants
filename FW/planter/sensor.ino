@@ -46,6 +46,10 @@ void Sensormanager(){
       touching[i] = false;
       constrain(sensed -= 20,0,255);
       Send_MIDI_BLE(CHANN, NOTE_OFF, notes[i], 0);
+#ifdef CONTROL
+      Send_MIDI_BLE(10, NOTE_OFF, notes[i], 0);
+      Send_MIDI_BLE(11, NOTE_OFF, notes[i], 0);
+#endif
     }
     if (touching[i])
     {
@@ -59,7 +63,9 @@ void Sensormanager(){
         velocity_filt[i] = filtered_data[i] / WINDOW;
         windowCount[i] = 0;
         filtered_data[i] = 0;
-        Send_MIDI_BLE(CHANN, CC, notes[i], velocity_filt[i]);
+        if(CC_EN){
+          Send_MIDI_BLE(CHANN, CC, notes[i], velocity_filt[i]);
+        }
       }
       else{
         filtered_data[i] = filtered_data[i] + velocity[i];
@@ -68,6 +74,10 @@ void Sensormanager(){
     }
     if(MPR121.isNewTouch(i)){
       Send_MIDI_BLE(CHANN, NOTE_ON, notes[i], velocity[i]);
+#ifdef CONTROL
+      Send_MIDI_BLE(10, NOTE_ON, notes[i], 127);
+      Send_MIDI_BLE(11, NOTE_ON, notes[i], 127);
+#endif
     }
   }
 }

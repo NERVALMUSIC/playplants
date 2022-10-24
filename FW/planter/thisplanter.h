@@ -16,7 +16,7 @@ uint8_t notes[SENSORS]= {53,58,50,48,65,70,53,58,50,48,65,70};  //C chords - {48
 uint8_t CHANN = 1;
 uint8_t TOUCH = 20;
 uint8_t RELEASE = 10;
-uint8_t SATVAL = -200;
+int16_t SATVAL = -200;
 uint8_t WINDOW = 25;
 unsigned char params[17];
 //Runtime variables

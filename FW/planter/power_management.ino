@@ -24,8 +24,6 @@ void power_off(){
     params[12] = CHANN;
     params[13] = TOUCH;
     params[14] = RELEASE;
-    params[15] = SATVAL;
-    params[16] = WINDOW;
     bond.putData(params,0,STORED);
   }
   MPR121.stop();

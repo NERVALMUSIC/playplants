@@ -94,8 +94,8 @@ void Get_MIDI_BLE( uint8_t status, uint8_t data1, uint8_t data2 )
   switch (command)
   {
     case 0x08: //Note off
-      if(channel > 0 && channel <= 12){
-        notes[channel-1] = data1;
+      if(channel > 1 && channel <= 13){
+        notes[channel-2] = data1;
         red.Off(); green.Breathe(FAST).Repeat(1); blue.Breathe(FAST).Repeat(1);  // BLINK Purple 
         while(green.IsRunning()){red.Update();green.Update();blue.Update();}  //wait for led show before powering off
         update = true;
@@ -113,8 +113,8 @@ void Get_MIDI_BLE( uint8_t status, uint8_t data1, uint8_t data2 )
         }
         break;
         case 0x67: //CC 103
-        TOUCH = map(data2,0,127,2,100);
-        RELEASE = map(data2,0,127,1,60);
+        TOUCH = uint8_t(map(data2,0,127,2,100));
+        RELEASE = uint8_t(map(data2,0,127,1,60));
         MPR121.setTouchThreshold(TOUCH);
         MPR121.setReleaseThreshold(RELEASE);
         red.Off(); green.Breathe(FAST).Repeat(1); blue.Breathe(FAST).Repeat(1);  // BLINK Purple 

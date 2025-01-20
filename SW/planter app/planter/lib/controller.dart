@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_midi_command/flutter_midi_command.dart';
@@ -7,7 +8,9 @@ import 'package:flutter_midi_command/flutter_midi_command_messages.dart';
 
 class ControllerPage extends StatelessWidget {
   final MidiDevice device;
-  const ControllerPage(this.device);
+
+  const ControllerPage(this.device, {super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -22,7 +25,7 @@ class ControllerPage extends StatelessWidget {
 class MidiControls extends StatefulWidget {
   final MidiDevice device;
 
-  const MidiControls(this.device);
+  const MidiControls(this.device, {super.key});
 
   @override
   MidiControlsState createState() {
@@ -31,10 +34,16 @@ class MidiControls extends StatefulWidget {
 }
 
 class MidiControlsState extends State<MidiControls> {
+  var _channel = 0;
+  final _controller = 0;
+  var _ccValue = 0;
+  var _pitchValue = 0.0;
+  var _pcValue = 0;
+
   // StreamSubscription<String> _setupSubscription;
   StreamSubscription<MidiPacket>? _rxSubscription;
   final MidiCommand _midiCommand = MidiCommand();
-  final _channel = TextEditingController();
+  final _plant = TextEditingController();
   final _e1 = TextEditingController();
   final _e2 = TextEditingController();
   final _e3 = TextEditingController();
@@ -51,24 +60,56 @@ class MidiControlsState extends State<MidiControls> {
 
   @override
   void initState() {
+    if (kDebugMode) {
+      print('init controller');
+    }
     _rxSubscription = _midiCommand.onMidiDataReceived?.listen((packet) {
       var data = packet.data;
+      var timestamp = packet.timestamp;
+      var device = packet.device;
+      if (kDebugMode) {
+        print("data $data @ time $timestamp from device ${device.name}:${device.id}");
+      }
+
       var status = data[0];
+
       if (status == 0xF8) {
         // Beat
         return;
       }
+
       if (status == 0xFE) {
         // Active sense;
         return;
       }
+
       if (data.length >= 2) {
         var rawStatus = status & 0xF0; // without channel
-        //var channel = (status & 0x0F);
-        //var d1 = data[1];
+        var channel = (status & 0x0F);
+        if (channel == _channel) {
+          var d1 = data[1];
         switch (rawStatus) {
           case 0xB0: // CC
+              if (d1 == _controller) {
+                // CC
+                var d2 = data[2];
+                setState(() {
+                  _ccValue = d2;
+                });
+              }
+              break;
+            case 0xC0: // PC
+              setState(() {
+                _pcValue = d1;
+              });
+              break;
+            case 0xE0: // Pitch Bend
+              setState(() {
+                var rawPitch = d1 + (data[2] << 7);
+                _pitchValue = (((rawPitch) / 0x3FFF) * 2.0) - 1;
+              });
             break;
+          }
         }
       }
     });
@@ -78,9 +119,7 @@ class MidiControlsState extends State<MidiControls> {
 
   @override
   void dispose() {
-    // _setupSubscription?.cancel();
     _rxSubscription?.cancel();
-    _channel.dispose();
     super.dispose();
   }
 
@@ -93,7 +132,7 @@ class MidiControlsState extends State<MidiControls> {
             leading: const Icon(Icons.hexagon_outlined),
             title: const Text('Channel'),
             subtitle: TextField(
-                controller: _channel,
+                controller: _plant,
                 keyboardType: TextInputType.number,
                 inputFormatters: <TextInputFormatter>[
                   FilteringTextInputFormatter.digitsOnly
@@ -277,21 +316,22 @@ class MidiControlsState extends State<MidiControls> {
               ),
             ],
           ),
-        ],
-      ),
-      floatingActionButton: FloatingActionButton(
+      ],
+    ),
+  floatingActionButton: FloatingActionButton(
         // When the user presses the button, show an alert dialog containing
         // the text that the user has entered into the text field.
         onPressed: () {
-          if (_channel.text.isNotEmpty) {
+          if (_plant.text.isNotEmpty) {
+            _channel = int.parse(_plant.text);
             CCMessage(
-              channel: int.parse(_channel.text),
+              channel: int.parse(_plant.text),
               controller: 102,
-              value: int.parse(_channel.text),
+              value: int.parse(_plant.text),
             ).send();
             sleep(const Duration(milliseconds: 500));
             CCMessage(
-              channel: int.parse(_channel.text),
+              channel: int.parse(_plant.text),
               controller: 103,
               value: _sensitivity.round().toInt(),
             ).send();

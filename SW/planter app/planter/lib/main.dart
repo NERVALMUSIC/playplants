@@ -20,7 +20,6 @@ class PlanterState extends State<Planter> {
   StreamSubscription<String>? _setupSubscription;
   StreamSubscription<BluetoothState>? _bluetoothStateSubscription;
   final MidiCommand _midiCommand = MidiCommand();
-  bool _didAskForBluetoothPermissions = false;
 
   @override
   void initState() {
@@ -52,7 +51,7 @@ class PlanterState extends State<Planter> {
   IconData _deviceIconForType(String type) {
     switch (type) {
       case "native":
-        return Icons.devices;
+        return Icons.bluetooth_audio;
       case "network":
         return Icons.language;
       case "BLE":
@@ -62,38 +61,6 @@ class PlanterState extends State<Planter> {
     }
   }
 
-  Future<void> _informUserAboutBluetoothPermissions(
-      BuildContext context) async {
-    if (_didAskForBluetoothPermissions) {
-      return;
-    }
-
-    await showDialog<void>(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text(
-              'Please Grant Bluetooth Permissions to discover BLE MIDI Devices.'),
-          content: const Text(
-              'In the next dialog we might ask you for bluetooth permissions.\n'
-              'Please grant permissions to make bluetooth MIDI possible.'),
-          actions: <Widget>[
-            TextButton(
-              child: const Text('Ok. I got it!'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
-        );
-      },
-    );
-
-    _didAskForBluetoothPermissions = true;
-
-    return;
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -105,9 +72,6 @@ class PlanterState extends State<Planter> {
             Builder(builder: (context) {
               return IconButton(
                   onPressed: () async {
-                    // Ask for bluetooth permissions
-                    await _informUserAboutBluetoothPermissions(context);
-
                     // Start bluetooth
                     if (kDebugMode) {
                       print("start ble central");
@@ -213,6 +177,7 @@ class PlanterState extends State<Planter> {
                           : Icons.radio_button_off),
                       trailing: Icon(_deviceIconForType(device.type)),
                       onLongPress: () {
+                        if (device.connected) {
                         _midiCommand.stopScanningForBluetoothDevices();
                         Navigator.of(context)
                             .push(MaterialPageRoute<void>(
@@ -221,6 +186,7 @@ class PlanterState extends State<Planter> {
                             .then((value) {
                           setState(() {});
                         });
+                        }
                       },
                       onTap: () {
                         if (device.connected) {
@@ -228,6 +194,13 @@ class PlanterState extends State<Planter> {
                             print("disconnect");
                           }
                           _midiCommand.disconnectDevice(device);
+                          _midiCommand
+                              .startScanningForBluetoothDevices()
+                              .catchError((err) {
+                            if (kDebugMode) {
+                              print("Error $err");
+                            }
+                          });
                         } else {
                           if (kDebugMode) {
                             print("connect");
@@ -242,7 +215,15 @@ class PlanterState extends State<Planter> {
                               content: Text(
                                 "Error: ${(err as PlatformException?)?.message}")));
                           }
+
                           });
+                        _midiCommand
+                            .startScanningForBluetoothDevices()
+                            .catchError((err) {
+                          if (kDebugMode) {
+                            print("Error $err");
+                          }
+                        });
                         }
                       },
                     );

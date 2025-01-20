@@ -154,7 +154,7 @@ class MidiControlsState extends State<MidiControls> {
             },
           ),
           GridView.count(
-            crossAxisCount: 3,
+            crossAxisCount: 4,
             physics: const NeverScrollableScrollPhysics(),
             shrinkWrap: true, // You won't see infinite size error
             children: <Widget>[
